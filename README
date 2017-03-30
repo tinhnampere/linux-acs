@@ -1,0 +1,13 @@
+System Architecture Compliance Suite - Linux Kernel module
+==========================================================
+
+Maintained by - Prasanth Pulla (prasanth.pulla@arm.com)
+
+
+This repository hosts the kernel code required to run some of the tests for ARM System Architecture Compliance Suite.
+
+
+The present revision of this repository (release on 31-Mar-2017) contains code needed to run the
+
+1. SBSA-ACS:
+		The steps required to build and run this code can be found as part of the SBSA ACS User guide which can be downloaded from https://github.com/ARM-software/sbsa-acs/tree/master/docs

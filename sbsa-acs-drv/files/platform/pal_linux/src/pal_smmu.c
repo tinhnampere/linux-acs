@@ -1,0 +1,98 @@
+/*
+ * SBSA ACS Platform module.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Copyright (C) 2017 ARM Limited
+ *
+ * Author: Prasanth Pulla <prasanth.pulla@arm.com>
+ *
+ */
+
+#include <linux/acpi_iort.h>
+#include <linux/kernel.h>
+#include <linux/pci.h>
+#include <linux/sbsa-iommu.h>
+#include <linux/libata.h>
+
+#include "include/pal_linux.h"
+
+void
+pal_smmu_device_start_monitor_iova(void *port)
+{
+	if (((struct ata_port *)port)->dev->bus->iommu_ops == NULL) {
+		printk("\n         This device is not behind an SMMU ");
+		return;
+	}
+
+	sbsa_iommu_dev_start_monitor(((struct ata_port *)port)->dev);
+}
+
+void
+pal_smmu_device_stop_monitor_iova(void *port)
+{
+	if (((struct ata_port *)port)->dev->bus->iommu_ops == NULL) {
+                printk("\n         This device is not behind an SMMU ");
+                return;
+        }
+	sbsa_iommu_dev_stop_monitor(((struct ata_port *)port)->dev);
+}
+
+/**
+  @brief   This API checks if the input DMA address is part of the Device IOVA address table.
+           1. Caller       -  Validation Abstraction Layer.
+           2. Prerequisite -  pal_smmu_device_start_monitor_iova
+  @param   port     - Device port whose domain IOVA table is checked
+  @param   dma_addr - DMA address which is checked
+  @return  status   - SUCCESS if the input address is part of the IOVA range.
+**/
+unsigned int
+pal_smmu_check_device_iova(void *port, unsigned long long dma_addr)
+{
+        void *curr_node = NULL;
+	unsigned int index = 0;
+	unsigned long long base;
+        unsigned long int  size;
+	phys_addr_t phys;
+
+	if (((struct ata_port *)port)->dev->bus->iommu_ops == NULL) {
+		printk("\n         This device is not behind an SMMU ");
+		return PAL_LINUX_SKIP;
+	}
+
+	/* Check if this address was used in the last few transactions of the IOMMU layer */
+
+	do {
+		size = sbsa_iommu_iova_get_addr(index, &base);
+		if (size) {
+			if ((dma_addr >= base) && (dma_addr < (base + size))) {
+                                        return PAL_LINUX_SUCCESS;
+                        }
+			index++;
+		}
+	}while(size);
+
+	/* Did not find it above - Check the active IOVA table entries now */
+	do {
+		curr_node = sbsa_iommu_dma_get_iova(((struct ata_port *)port)->dev, &base, &size, &phys, curr_node);
+		if (curr_node) {
+			//printk("Device IOVA entry is %llx size = %lx phys = %llx \n", base, size, phys);
+			if ((dma_addr >= base) && (dma_addr < (base + size))) {
+					return PAL_LINUX_SUCCESS;
+			}
+		}
+	} while(curr_node);
+
+
+	return PAL_LINUX_ERR;
+}
