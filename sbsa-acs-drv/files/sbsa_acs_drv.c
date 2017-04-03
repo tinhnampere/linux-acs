@@ -47,6 +47,7 @@ uint64_t  *g_iovirt_info_ptr;
 int
 val_glue_execute_command(void)
 {
+    static int status = 0;
 
     if (params.api_num == SBSA_CREATE_INFO_TABLES)
     {
@@ -98,10 +99,16 @@ val_glue_execute_command(void)
                 p004_entry(params.num_pe);
                 break;
             case 55:
-                p005_entry(params.num_pe);
+                status = p005_entry(params.num_pe);
                 break;
             case 56:
-                p006_entry(params.num_pe);
+                if (status) {
+                    printk("Skipping this test as previous test failed \n");
+                    params.arg0 = DRV_STATUS_AVAILABLE;
+                    params.arg1 = RESULT_SKIP(3, params.arg0, 01);
+                } else {
+                    status = p006_entry(params.num_pe);
+                }
                 break;
             case 57:
                 p007_entry(params.num_pe);
