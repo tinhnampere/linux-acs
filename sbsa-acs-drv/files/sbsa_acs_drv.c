@@ -77,8 +77,10 @@ val_glue_execute_command(void)
     if (params.api_num == SBSA_FREE_INFO_TABLES)
     {
         kfree(g_pe_info_ptr);
+        kfree(g_pcie_info_ptr);
+        kfree(g_per_info_ptr);
+        kfree(g_dma_info_ptr);
         kfree(g_iovirt_info_ptr);
-
     }
 
     if (params.api_num == SBSA_EXECUTE_TEST)
@@ -158,7 +160,7 @@ ssize_t sbsa_proc_write(struct file *sp_file,const char __user *buf, size_t size
     //printk("proc called write %lx\n",size);
     len = size;
     copy_from_user(&params,buf,len);
-    printk("Test parameters are %x %x \n", params.api_num, params.level);
+    //printk("Test parameters are %x %x \n", params.api_num, params.level);
     val_glue_execute_command();
     return len;
 }
