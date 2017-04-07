@@ -4,7 +4,7 @@ System Architecture Compliance Suite - Linux Kernel module
 Maintained by - Prasanth Pulla (prasanth.pulla@arm.com)
 
 
-This repository hosts the kernel code required to run some of the tests for ARM System Architecture Compliance Suite.
+This repository hosts the kernel code required to run some of the tests for ARM Enterprise Architecture Compliance Suite.
 
 
 The present revision of this repository (release on 31-Mar-2017) contains code needed to run the

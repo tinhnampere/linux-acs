@@ -87,6 +87,16 @@ pal_print(char *string, unsigned long data)
 }
 
 /**
+  @brief this function is irrelevant for linux code
+**/
+void
+pal_print_raw(unsigned long addr, char *string, unsigned long data)
+{
+
+  printk(string, data);
+}
+
+/**
   @brief  Free the memory allocated by UEFI Framework APIs
   @param  Buffer the base address of the memory range to be freed
 
