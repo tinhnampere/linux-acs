@@ -92,10 +92,16 @@ val_glue_execute_command(void)
                 p001_entry(params.num_pe);
                 break;
             case 52:
-                p002_entry(params.num_pe);
+                status = p002_entry(params.num_pe);
                 break;
             case 53:
-                p003_entry(params.num_pe);
+                if (status) {
+                    printk("Skipping this test as previous test failed \n");
+                    params.arg0 = DRV_STATUS_AVAILABLE;
+                    params.arg1 = RESULT_SKIP(3, params.arg0, 01);
+                } else {
+                    p003_entry(params.num_pe);
+                }
                 break;
             case 54:
                 p004_entry(params.num_pe);
@@ -175,7 +181,7 @@ struct file_operations fops = {
 static int __init init_sbsaproc (void)
 {
     printk("init SBSA Driver \n");
-    if (! proc_create("sbsa",0666,NULL,&fops)) {
+    if (!proc_create("sbsa",0666,NULL,&fops)) {
         printk("ERROR! proc_create\n");
         remove_proc_entry("sbsa",NULL);
         return -1;
