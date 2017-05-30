@@ -59,7 +59,7 @@ pal_pe_create_info_table(PE_INFO_TABLE *PeTable)
   @return status of the API
 **/
 unsigned int
-pal_pe_install_esr(unsigned int ExceptionType,  void (*esr)(void))
+pal_pe_install_esr(unsigned int ExceptionType, void (*esr)(unsigned long long, void *))
 {
 
   return 0;
@@ -102,8 +102,8 @@ pal_pe_execute_payload(ARM_SMC_ARGS *ArmSmcArgs)
 }
 
 void
-pal_pe_update_elr(unsigned long long offset)
-{ 
+pal_pe_update_elr(void *context, unsigned long long offset)
+{
 }
 
 
