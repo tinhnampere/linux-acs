@@ -47,6 +47,14 @@ SRC_URI = "file://Makefile \
            file://test_pool/pcie/test_p005.c \
            file://test_pool/pcie/test_p006.c \
            file://test_pool/pcie/test_p007.c \
+           file://test_pool/pcie/test_p008.c \
+           file://test_pool/pcie/test_p009.c \
+           file://test_pool/pcie/test_p010.c \
+           file://test_pool/pcie/test_p011.c \
+           file://test_pool/pcie/test_p012.c \
+           file://test_pool/pcie/test_p013.c \
+           file://test_pool/pcie/test_p014.c \
+           file://test_pool/pcie/test_p015.c \
            file://COPYING \
           "
 
