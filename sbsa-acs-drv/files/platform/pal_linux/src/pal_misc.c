@@ -21,9 +21,12 @@
 
 #include <linux/slab.h>
 #include <asm/io.h>
+#include "include/pal_linux.h"
 
 unsigned int *gSharedMemory;
 
+int tail_msg = 0;
+int num_msg = MIN_NUM_MSG;
 /**
   @brief  Provides a single point of abstraction to read from all 
           Memory Mapped IO address
@@ -32,14 +35,14 @@ unsigned int *gSharedMemory;
 
   @return 32-bit data read from the input address
 **/
-unsigned int
-pal_mmio_read(unsigned long addr)
+uint32_t
+pal_mmio_read(uint64_t addr)
 {
-  unsigned int data;
-  unsigned int *p;
+  uint32_t data;
+  uint32_t *p;
 
   if (addr & 0x3) {
-      printk("\n  Error-Input address is not aligned. Masking the last 2 bits \n");
+      sbsa_print(AVS_PRINT_INFO, "\n  Error-Input address is not aligned. Masking the last 2 bits \n");
       addr = addr & ~(0x3);  //make sure addr is aligned to 4 bytes
   }
   p = ioremap(addr, 16);
@@ -62,9 +65,9 @@ pal_mmio_read(unsigned long addr)
   @return None
 **/
 void
-pal_mmio_write(unsigned long addr, unsigned int data)
+pal_mmio_write(uint64_t addr, uint32_t data)
 {
-  unsigned int *p;
+  uint32_t *p;
   p = ioremap(addr, 16);
   //Print(L"Address = %8x  Data = %8x \n", addr, data);
   iowrite32(data, p);
@@ -81,19 +84,32 @@ pal_mmio_write(unsigned long addr, unsigned int data)
   @return None
 **/
 void
-pal_print(char *string, unsigned long data)
+pal_print(char *string, uint64_t data)
 {
-  printk(string, data);
+  char buf[MSG_SIZE], *tmp;
+
+  if(tail_msg >= num_msg) {
+    tmp = kmalloc(NUM_MSG_GROW(num_msg) * sizeof(pal_msg_parms_t), GFP_KERNEL);
+    if(tmp) {
+      memcpy(tmp, g_msg_buf, num_msg * sizeof(pal_msg_parms_t));
+      num_msg = NUM_MSG_GROW(num_msg);
+      kfree(g_msg_buf);
+      g_msg_buf = tmp;
+    } else
+      tail_msg = tail_msg % num_msg;
+  }
+  sprintf(buf, string, data);
+  memcpy(g_msg_buf+(tail_msg*MSG_SIZE), buf, sizeof(buf));
+  tail_msg = tail_msg+1;
+
 }
 
 /**
   @brief this function is irrelevant for linux code
 **/
 void
-pal_print_raw(unsigned long addr, char *string, unsigned long data)
+pal_print_raw(uint64_t addr, char *string, uint64_t data)
 {
-
-  printk(string, data);
 }
 
 /**
@@ -131,11 +147,11 @@ pal_mem_allocate_shared(unsigned int num_pe, unsigned int sizeofentry)
 /**
   @brief  Return the base address of the shared memory region to the VAL layer
 **/
-unsigned long
+uint64_t
 pal_mem_get_shared_addr(void)
 {
 
-  return (unsigned long) (gSharedMemory);
+  return (uint64_t) (gSharedMemory);
 }
 
 /**

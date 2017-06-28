@@ -29,6 +29,9 @@
 #include <linux/transport_class.h>
 #include <linux/libata.h>
 #include <asm/unaligned.h>
+#include <asm/pgtable.h>
+#include <asm/sysreg.h>
+#include <asm/pgtable-types.h>
 #include <scsi/scsi_device.h>
 #include <scsi/scsi_host.h>
 #include <scsi/scsi_transport.h>
@@ -52,7 +55,7 @@ pal_dma_mem_alloc(void **buffer, unsigned int length, void *port, unsigned int f
         if (flags == DMA_COHERENT) {
                 *buffer = dmam_alloc_coherent(((struct ata_port *)port)->dev, length, &mem_dma, GFP_KERNEL);
                 if (!(*buffer)) {
-                        printk(KERN_ERR "SBSA-DRV - Alloc failure %s \n", __func__);
+                        sbsa_print(AVS_PRINT_ERR, "SBSA-DRV - Alloc failure %s \n", __func__);
                         return -ENOMEM;
                 }
         } else {
@@ -65,8 +68,6 @@ pal_dma_mem_alloc(void **buffer, unsigned int length, void *port, unsigned int f
                 }
         }
         memset(*buffer, 0, length);
-
-        //printk("dma buffer is %llx %llx \n", *buffer, mem_dma);
 
         return mem_dma;
 }
@@ -107,11 +108,9 @@ pal_dma_create_info_table(DMA_INFO_TABLE *dma_info_table)
 
 	dma_info_table->num_dma_ctrls = 0;
 
-	//printk("Look at all SCSI hosts in the system \n");
 	do {
 		shost = scsi_host_lookup(i++);
 		if (shost) {
-			//printk("Found a scsi host: ");
 			sdev = NULL;
 			ap = ata_shost_to_port(shost);
 			if (ap == NULL)
@@ -120,7 +119,6 @@ pal_dma_create_info_table(DMA_INFO_TABLE *dma_info_table)
 				/* get the device connected to this host */
 				sdev = __scsi_iterate_devices(shost, sdev);
 				if (sdev) {
-					//printk(" found device connected to this host \n");
 					dma_info_table->info[j].host   = shost;
 					dma_info_table->info[j].port   = ap;
 					dma_info_table->info[j].target = sdev;
@@ -193,3 +191,65 @@ pal_dma_start_to_device(void *dma_source_buf, unsigned int length,
 }
 
 
+static int
+is_pte(uint64_t val)
+{
+    return !(val & 0x2);
+}
+
+/* Decode memory attribute and shareabilty from page table descriptor val*/
+static void
+decode_mem_attr_sh(uint64_t val, uint32_t *attr, uint32_t *sh)
+{
+    uint64_t mair = read_sysreg(mair_el1);
+    uint32_t attrindx = (val & PTE_ATTRINDX_MASK) >> 2;
+    *attr = (mair >> (attrindx * 8)) & 0xff;
+    *sh = (val & PTE_SHARED) >> 8;
+    sbsa_print(AVS_PRINT_INFO, "In decode_mem_attr_sh with attr=%x, sh=%x\n", *attr, *sh);
+}
+
+int
+pal_dma_mem_get_attrs(void *buf, uint32_t *attr, uint32_t *sh)
+{
+    pud_t *pud;
+    pmd_t *pmd;
+    pte_t *pte;
+    pgd_t *pgd, *swapper_pgd;
+    struct page *pg = phys_to_page(read_sysreg(ttbr1_el1));
+
+    swapper_pgd = (pgd_t*) kmap(pg);
+    if(!swapper_pgd)
+        return -1;
+
+    pgd = pgd_offset_raw(swapper_pgd, (uint64_t)buf);
+    if(!pgd)
+        return -1;
+    kunmap(pg);
+
+    pud = pud_offset(pgd, (uint64_t)buf);
+    if(!pud)
+        return -1;
+    if(is_pte(pud_val(*pud))) {
+         decode_mem_attr_sh(pud_val(*pud), attr, sh);
+         return 0;
+    }
+
+    pmd = pmd_offset(pud, (uint64_t)buf);
+    if(!pmd)
+        return -1;
+    if(is_pte(pmd_val(*pmd))) {
+         decode_mem_attr_sh(pmd_val(*pmd), attr, sh);
+         return 0;
+    }
+
+    pte = pte_offset_kernel(pmd, (uint64_t)buf);
+    if(!pte)
+        return -1;
+
+    if(is_pte(pte_val(*pte))) {
+        decode_mem_attr_sh(pte_val(*pte), attr, sh);
+        return 0;
+    }
+
+    return -1;
+}

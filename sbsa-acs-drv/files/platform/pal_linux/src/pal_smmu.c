@@ -27,11 +27,15 @@
 
 #include "include/pal_linux.h"
 
+#define SMMU_V3_IDR1 0x4
+#define SMMU_V3_IDR1_PASID_SHIFT 6
+#define SMMU_V3_IDR1_PASID_MASK  0x1f
+
 void
 pal_smmu_device_start_monitor_iova(void *port)
 {
 	if (((struct ata_port *)port)->dev->bus->iommu_ops == NULL) {
-		printk("\n         This device is not behind an SMMU ");
+        sbsa_print(AVS_PRINT_WARN, "\n         This device is not behind an SMMU ");
 		return;
 	}
 
@@ -42,7 +46,7 @@ void
 pal_smmu_device_stop_monitor_iova(void *port)
 {
 	if (((struct ata_port *)port)->dev->bus->iommu_ops == NULL) {
-                printk("\n         This device is not behind an SMMU ");
+                sbsa_print(AVS_PRINT_WARN, "\n         This device is not behind an SMMU ");
                 return;
         }
 	sbsa_iommu_dev_stop_monitor(((struct ata_port *)port)->dev);
@@ -66,7 +70,7 @@ pal_smmu_check_device_iova(void *port, unsigned long long dma_addr)
 	phys_addr_t phys;
 
 	if (((struct ata_port *)port)->dev->bus->iommu_ops == NULL) {
-		printk("\n         This device is not behind an SMMU ");
+		sbsa_print(AVS_PRINT_WARN, "\n         This device is not behind an SMMU ");
 		return PAL_LINUX_SKIP;
 	}
 
@@ -86,7 +90,7 @@ pal_smmu_check_device_iova(void *port, unsigned long long dma_addr)
 	do {
 		curr_node = sbsa_iommu_dma_get_iova(((struct ata_port *)port)->dev, &base, &size, &phys, curr_node);
 		if (curr_node) {
-			//printk("Device IOVA entry is %llx size = %lx phys = %llx \n", base, size, phys);
+			sbsa_print(AVS_PRINT_INFO, "Device IOVA entry is %llx size = %lx phys = %llx \n", base, size, phys);
 			if ((dma_addr >= base) && (dma_addr < (base + size))) {
 					return PAL_LINUX_SUCCESS;
 			}
@@ -95,4 +99,14 @@ pal_smmu_check_device_iova(void *port, unsigned long long dma_addr)
 
 
 	return PAL_LINUX_ERR;
+}
+
+uint32_t
+pal_smmu_max_pasids(uint64_t smmu_base)
+{
+  uint32_t reg = pal_mmio_read(smmu_base + SMMU_V3_IDR1);
+  uint32_t pasid_bits = reg >> SMMU_V3_IDR1_PASID_SHIFT & SMMU_V3_IDR1_PASID_MASK;
+  if(pasid_bits == 0)
+     return 0;
+  return (1 << pasid_bits);
 }

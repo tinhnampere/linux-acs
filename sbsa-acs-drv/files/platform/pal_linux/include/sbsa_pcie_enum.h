@@ -34,6 +34,9 @@
 struct pci_dev *
 pal_pci_get_dev(unsigned int class_code, struct pci_dev *dev);
 
+struct pci_dev *
+pal_pci_get_dev_next (struct pci_dev *from_dev);
+
 unsigned long
 pal_pcie_get_base(struct pci_dev *dev, unsigned int bar_index);
 

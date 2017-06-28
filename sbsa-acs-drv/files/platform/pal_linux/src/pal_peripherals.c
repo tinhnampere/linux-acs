@@ -22,6 +22,7 @@
 #include <linux/init.h>
 #include <linux/module.h>
 #include <linux/pci.h>
+#include <linux/pci-ats.h>
 
 #include "include/pal_linux.h"
 #include "include/sbsa_pcie_enum.h"
@@ -31,6 +32,9 @@
 #define SATA_CLASSCODE  0x010601
 #define BAR0            0
 #define BAR1            1
+#define BAR2            2
+#define BAR3            3
+#define BAR4            4
 #define BAR5            5
 
 void
@@ -41,6 +45,7 @@ pal_peripheral_create_info_table(PERIPHERAL_INFO_TABLE *peripheralInfoTable)
 {
 
   struct pci_dev *pdev = NULL;
+  int max_pasids;
   PERIPHERAL_INFO_BLOCK *per_info;
 
   per_info = peripheralInfoTable->info;
@@ -48,42 +53,48 @@ pal_peripheral_create_info_table(PERIPHERAL_INFO_TABLE *peripheralInfoTable)
   peripheralInfoTable->header.num_usb = 0;
   peripheralInfoTable->header.num_sata = 0;
   peripheralInfoTable->header.num_uart = 0;
+  peripheralInfoTable->header.num_all = 0;
 
-  /* check for any XHCI - USB Controllers */
+  /* Collect all PCI devices */
   do {
+       pdev = pal_pci_get_dev_next (pdev);
+       if (pdev != NULL) {
+         per_info->base0 = pal_pcie_get_base (pdev, BAR0);
+         per_info->bdf = pal_pcie_get_bdf (pdev);
+         per_info->flags = pci_dev_msi_enabled (pdev)? PER_FLAG_MSI_ENABLED : 0;
+         per_info->msi = 0;
+         per_info->msix = 0;
+         if (pci_dev_msi_enabled (pdev)) {
+           per_info->msi = pdev->msi_enabled;
+           per_info->msix = pdev->msix_enabled;
+         }
+         per_info->irq   = pdev->irq;
+         max_pasids = pci_max_pasids(pdev);
+         per_info->max_pasids = (max_pasids < 0)?0:max_pasids;
+         peripheralInfoTable->header.num_all++;
 
-       pdev = pal_pci_get_dev(USB_CLASSCODE, pdev);
-       if (pdev != 0) {
-          per_info->type  = PERIPHERAL_TYPE_USB;
-          per_info->base0 = pal_pcie_get_base(pdev, BAR0);
-          per_info->bdf   = pal_pcie_get_bdf(pdev);
-          per_info->flags = pci_dev_msi_enabled(pdev)? PER_FLAG_MSI_ENABLED : 0;
-          per_info->irq   = pdev->irq;
-          printk("Found a USB controller %4x \n", per_info->bdf);
-          peripheralInfoTable->header.num_usb++;
-          per_info++;
+         switch (pdev->class) {
+          /* check for any XHCI - USB Controllers */
+          case USB_CLASSCODE:
+            per_info->type  = PERIPHERAL_TYPE_USB;
+            sbsa_print(AVS_PRINT_INFO, "Found a USB controller %4x \n", per_info->bdf);
+            peripheralInfoTable->header.num_usb++;
+            break;
+          /* check for any AHCI - SATA Controllers */
+          case SATA_CLASSCODE:
+            per_info->type  = PERIPHERAL_TYPE_SATA;
+            sbsa_print(AVS_PRINT_INFO, "Found a SATA controller %4x \n", per_info->bdf);
+            per_info->base1 = pal_pcie_get_base (pdev, BAR5);
+            peripheralInfoTable->header.num_sata++;
+            break;
+          default:
+            per_info->type  = PERIPHERAL_TYPE_OTHER;
+            break;
+         }
+         per_info++;
        }
   } while (pdev != NULL);
 
-
-  pdev = NULL;
-  /* check for any AHCI - SATA Controllers */
-  do {
-  
-       pdev = pal_pci_get_dev(SATA_CLASSCODE, pdev);
-       if (pdev != 0) {
-          per_info->type  = PERIPHERAL_TYPE_SATA;
-          per_info->base0 = pal_pcie_get_base(pdev, BAR0);
-          per_info->base1 = pal_pcie_get_base(pdev, BAR5);
-          per_info->bdf   = pal_pcie_get_bdf(pdev);
-          per_info->flags = pci_dev_msi_enabled(pdev)? PER_FLAG_MSI_ENABLED : 0;
-          per_info->irq   = pdev->irq;
-          peripheralInfoTable->header.num_sata++;
-          per_info++;
-       }
-
-  } while (pdev != NULL);
-  
   per_info->type = 0xFF; //indicate end of table
 
 }

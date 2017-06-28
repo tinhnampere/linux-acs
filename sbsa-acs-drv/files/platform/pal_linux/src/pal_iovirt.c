@@ -35,33 +35,32 @@ dump_block(IOVIRT_BLOCK *block)
   NODE_DATA_MAP *map = &block->data_map[0];
   switch(block->type) {
       case ACPI_IORT_NODE_ITS_GROUP:
-          printk("\nITS Group:\n Num ITS:%d\n", (*map).id[0]);
+          sbsa_print(AVS_PRINT_INFO, "\nITS Group:\n Num ITS:%d\n", (*map).id[0]);
           for(i = 0; i < block->data.its_count; i++)
-              printk("%d ", (*map).id[i]);
-          printk("\n");
+              sbsa_print(AVS_PRINT_INFO, "%d ", (*map).id[i]);
+          sbsa_print(AVS_PRINT_INFO, "\n");
           return;
       case ACPI_IORT_NODE_NAMED_COMPONENT:
-          printk("\nNamed Component:\n Device Name:%s\n", block->data.name);
+          sbsa_print(AVS_PRINT_INFO, "\nNamed Component:\n Device Name:%s\n", block->data.name);
           break;
       case ACPI_IORT_NODE_PCI_ROOT_COMPLEX:
-          printk("\nRoot Complex:\n PCI segment number:%d\n", block->data.segment);
+          sbsa_print(AVS_PRINT_INFO, "\nRoot Complex:\n PCI segment number:%d\n", block->data.segment);
           break;
       case ACPI_IORT_NODE_SMMU:
       case ACPI_IORT_NODE_SMMU_V3:
-          printk("\nSMMU:\n Major Rev:%d\n Base Address:0x%lld\n",
+          sbsa_print(AVS_PRINT_INFO, "\nSMMU:\n Major Rev:%d\n Base Address:0x%lld\n",
           block->data.smmu.arch_major_rev, block->data.smmu.base);
         break;
   }
-  printk("Number of ID Mappings:%d\n", block->num_data_map);
+  sbsa_print(AVS_PRINT_INFO, "Number of ID Mappings:%d\n", block->num_data_map);
   for(i = 0; i < block->num_data_map; i++, map++) {
-      printk("\n input_base:0x%x\n id_count:0x%x\n output_base:0x%x\n output ref:0x%x\n",
+      sbsa_print(AVS_PRINT_INFO, "\n input_base:0x%x\n id_count:0x%x\n output_base:0x%x\n output ref:0x%x\n",
             (*map).map.input_base, (*map).map.id_count,
             (*map).map.output_base, (*map).map.output_ref);
   }
-  printk("\n");
+  sbsa_print(AVS_PRINT_INFO, "\n");
 }
 
-/*
 static void
 dump_iovirt_table(IOVIRT_INFO_TABLE *iort)
 {
@@ -70,12 +69,25 @@ dump_iovirt_table(IOVIRT_INFO_TABLE *iort)
   for(i = 0; i < iort->num_blocks; i++, block = IOVIRT_NEXT_BLOCK(block))
     dump_block(block);
 }
-*/
 
 /**
   @brief  Check ID mappings in all blocks for any overlap of ID ranges
   @param iovirt IoVirt table
 **/
+
+
+static int
+smmu_ctx_int_distinct(uint64_t *ctx_int, int ctx_int_cnt) {
+  int i, j;
+  for(i = 0; i < ctx_int_cnt - 1; i++) {
+    for(j = i + 1; j < ctx_int_cnt; j++) {
+      if(*((uint32_t *)&ctx_int[i]) == *((uint32_t *)&ctx_int[j]))
+        return 0;
+    }
+  }
+  return 1;
+}
+
 static void
 check_mapping_overlap(IOVIRT_INFO_TABLE *iovirt)
 {
@@ -96,7 +108,7 @@ check_mapping_overlap(IOVIRT_INFO_TABLE *iovirt)
             key_map++, n_key_maps--)
         {
             key_start = (*key_map).map.output_base;
-            key_end = key_start + (*key_map).map.id_count;
+            key_end = key_start + (*key_map).map.id_count - 1;
             for(block = key_block, n_blocks = n_key_blocks;
                 n_blocks > 0;
                 block = IOVIRT_NEXT_BLOCK(block), n_blocks--)
@@ -115,23 +127,20 @@ check_mapping_overlap(IOVIRT_INFO_TABLE *iovirt)
                     if((*map).map.output_ref != (*key_map).map.output_ref)
                         continue;
                     start = (*map).map.output_base;
-                    end = start + (*map).map.id_count;
+                    end = start + (*map).map.id_count - 1;
                     if((key_start >= start && key_start <= end) ||
                        (key_end >= start && key_end <= end) ||
                        (key_start < start && key_end > end))
                     {
                         tmp = ACPI_ADD_PTR(IOVIRT_BLOCK, iovirt, (*map).map.output_ref);
-                        if(tmp->type == ACPI_IORT_NODE_ITS_GROUP)
-                             printk("\nOverlapping device ids %x-%x and %x-%x \n",
-                                    key_start, key_end, start, end);
+                        if(tmp->type == ACPI_IORT_NODE_ITS_GROUP) {
+                           key_block->flags |= (1 << IOVIRT_FLAG_DEVID_OVERLAP_SHIFT);
+                           block->flags |= (1 << IOVIRT_FLAG_DEVID_OVERLAP_SHIFT);
+                        }
                         else
-                             printk("\nOverlapping stream ids %x-%x and %x-%x \n",
-                                    key_start, key_end, start, end);
-                        printk("for block\n");
-                        dump_block(key_block);
-                        if(key_block != block) {
-                            printk("AND\n");
-                            dump_block(block);
+                        {
+                           key_block->flags |= (1 << IOVIRT_FLAG_STRID_OVERLAP_SHIFT);
+                           block->flags |= (1 << IOVIRT_FLAG_STRID_OVERLAP_SHIFT);
                         }
                     }
                 }
@@ -151,17 +160,17 @@ static uint32_t
 find_block(IOVIRT_BLOCK *key, IOVIRT_INFO_TABLE *iovirt_table)
 {
     IOVIRT_BLOCK *block = &iovirt_table->blocks[0];
-    NODE_DATA_MAP *data_map;
+    uint8_t *cmp_end;
     uint32_t i, cmp_size;
     for(i = 0; i < iovirt_table->num_blocks; i++, block = IOVIRT_NEXT_BLOCK(block))
     {
-        data_map = &block->data_map[0];
-        cmp_size = (uint8_t*)data_map - (uint8_t*)block;
+        cmp_end = (uint8_t*)&block->flags;
+        cmp_size = cmp_end - (uint8_t*)block;
         if(key->type == block->type)
         {
             /* Compare identfiers array as well in case of ITS group */
             if(block->type == ACPI_IORT_NODE_ITS_GROUP)
-                cmp_size += block->data.its_count * sizeof(uint32_t);
+                cmp_size += (block->data.its_count * sizeof(uint32_t) + sizeof(block->flags));
             if(!memcmp(key, block, cmp_size))
                 return (uint8_t*)block - (uint8_t*)iovirt_table;
         }
@@ -179,10 +188,10 @@ find_block(IOVIRT_BLOCK *key, IOVIRT_INFO_TABLE *iovirt_table)
                         where IORT block is to be added. This is modified
                         to the next address where new IORT block
                         can be created.
-  @return offset from the IO Virt base address to the IORT block
+  @return offset from the IO Virt table base address to the IORT block
           base address passed in **block
           OR
-          offset from the IO Virt base address to the IORT block
+          offset from the IO Virt table base address to the IORT block
           base address where this block is already present in the
           table.
 **/
@@ -217,6 +226,8 @@ iovirt_add_block(struct acpi_table_iort *iort, struct acpi_iort_node *iort_node,
             break;
         case ACPI_IORT_NODE_PCI_ROOT_COMPLEX:
             (*data).segment = ((struct acpi_iort_root_complex*)node_data)->pci_segment_number;
+            memcpy(&(*data_map).id[0], &((struct acpi_iort_root_complex*)node_data)->memory_properties, sizeof(uint32_t) * 3);
+            (*block)->num_data_map = 1;
             count = &iovirt_table->num_pci_rcs;
             break;
         case ACPI_IORT_NODE_SMMU:
@@ -230,7 +241,7 @@ iovirt_add_block(struct acpi_table_iort *iort, struct acpi_iort_node *iort_node,
             count = &iovirt_table->num_smmus;
             break;
         default:
-            printk("Invalid IORT node type\n");
+            sbsa_print(AVS_PRINT_ERR, "Invalid IORT node type\n");
             return (uint32_t) -1;
     }
 
@@ -239,6 +250,13 @@ iovirt_add_block(struct acpi_table_iort *iort, struct acpi_iort_node *iort_node,
     offset = find_block(*block, iovirt_table);
     if(offset)
         return offset;
+
+    (*block)->flags = 0;
+    if(iort_node->type == ACPI_IORT_NODE_SMMU) {
+        if(!smmu_ctx_int_distinct(ACPI_ADD_PTR(uint64_t, iort_node, ((struct acpi_iort_smmu *)node_data)->context_interrupt_offset),
+                               ((struct acpi_iort_smmu *)node_data)->context_interrupt_count))
+        (*block)->flags |= (1 << IOVIRT_FLAG_SMMU_CTX_INT_SHIFT);
+    }
 
     /* Calculate the position where next block should be added */
     next_block = ACPI_ADD_PTR(IOVIRT_BLOCK, data_map, (*block)->num_data_map * sizeof(NODE_DATA_MAP));
@@ -312,12 +330,47 @@ pal_iovirt_create_info_table(IOVIRT_INFO_TABLE *iovirt_table)
     /* Create iovirt block for each IORT node*/
     for (i = 0; i < iort->node_count; i++) {
         if (iort_node >= iort_end) {
-            printk("Bad IORT table \n");
+            sbsa_print(AVS_PRINT_ERR, "Bad IORT table \n");
             return;
         }
         iovirt_add_block(iort, iort_node, iovirt_table, &next_block);
         iort_node = ACPI_ADD_PTR(struct acpi_iort_node, iort_node, iort_node->length);
     }
-    //dump_iovirt_table(iovirt_table);
+    dump_iovirt_table(iovirt_table);
     check_mapping_overlap(iovirt_table);
+}
+
+/**
+  @brief  Check if given SMMU node has unique context bank interrupt ids
+
+  @param  smmu_block smmu IOVIRT block base address
+
+  @return 0 if test fails, 1 if test passes
+**/
+
+uint32_t
+pal_iovirt_check_unique_ctx_intid(uint64_t smmu_block)
+{
+    IOVIRT_BLOCK *block = (IOVIRT_BLOCK *)smmu_block;
+    if(block->flags & (1 << IOVIRT_FLAG_SMMU_CTX_INT_SHIFT))
+       return 0;
+    return 1;
+
+}
+
+/**
+  @brief  Check if given root complex node has unique requestor id to stream id mapping
+
+  @param  rc_block root complex IOVIRT block base address
+
+  @return 0 if test fails, 1 if test passes
+**/
+
+uint32_t
+pal_iovirt_unique_rid_strid_map(uint64_t rc_block)
+{
+  IOVIRT_BLOCK *block = (IOVIRT_BLOCK *)rc_block;
+  if(block->flags & (1 << IOVIRT_FLAG_STRID_OVERLAP_SHIFT))
+    return 0;
+  return 1;
 }

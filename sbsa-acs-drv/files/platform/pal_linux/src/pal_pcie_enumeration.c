@@ -43,6 +43,19 @@ pal_pci_get_dev(unsigned int class_code, struct pci_dev *dev)
   return pci_get_class(class_code, dev);
 }
 
+/**
+    @brief   Returns next PCI device
+
+    @param   from_dev    previous PCI device or NULL
+
+    @return  Next PCI device or NULL
+**/
+struct pci_dev *
+pal_pci_get_dev_next (struct pci_dev *from_dev)
+{
+
+  return pci_get_device (PCI_ANY_ID, PCI_ANY_ID, from_dev);
+}
 
 /**
   @brief  This API returns the Base Address Register value for a given BDF and index

@@ -27,14 +27,23 @@
 #include <linux/slab.h>
 
 #define SBSA_CREATE_INFO_TABLES 0x1000
-#define SBSA_EXECUTE_TEST       0x2000
+#define SBSA_PCIE_EXECUTE_TEST  0x2000
+#define SBSA_UPDATE_SKIP_LIST   0x3000
 #define SBSA_FREE_INFO_TABLES   0x9000
-
 
 /* STATUS MESSAGES */
 #define DRV_STATUS_AVAILABLE     0x10000000
 #define DRV_STATUS_PENDING       0x40000000
 
+#define PE_INFO_TBL_SZ             8192
+#define GIC_INFO_TBL_SZ            2048
+#define TIMER_INFO_TBL_SZ          1024
+#define WD_INFO_TBL_SZ             512
+#define MEM_INFO_TBL_SZ            4096
+#define IOVIRT_INFO_TBL_SZ         4096
+#define PERIPHERAL_INFO_TBL_SZ     2883584
+#define PCIE_INFO_TBL_SZ           1024
+#define DMA_INFO_TBL_SZ            1024
 
 typedef
 struct __TEST_PARAMS__
@@ -46,3 +55,8 @@ struct __TEST_PARAMS__
     unsigned long arg1;
     unsigned long arg2;
 }test_params_t;
+
+typedef struct __TEST_SBSA_MSG__ {
+    char string[92];
+    unsigned long data;
+}test_msg_parms_t;

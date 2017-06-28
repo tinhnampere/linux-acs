@@ -59,7 +59,7 @@ pal_pe_create_info_table(PE_INFO_TABLE *PeTable)
   @return status of the API
 **/
 unsigned int
-pal_pe_install_esr(unsigned int ExceptionType, void (*esr)(unsigned long long, void *))
+pal_pe_install_esr(unsigned int ExceptionType,  void (*esr)(unsigned long long, void *))
 {
 
   return 0;
@@ -106,6 +106,17 @@ pal_pe_update_elr(void *context, unsigned long long offset)
 {
 }
 
+unsigned long long
+pal_pe_get_far(void *context)
+{
+  return 0;
+}
+
+unsigned long long
+pal_pe_get_esr(void *context)
+{
+  return 0;
+}
 
 unsigned int
 BigEndianCheck(unsigned long *ptr)

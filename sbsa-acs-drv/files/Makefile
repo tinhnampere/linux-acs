@@ -41,7 +41,11 @@ sbsa_acs-objs += sbsa_acs_drv.o $(PAL_SRC)/pal_misc.o \
     $(TEST_POOL)/pcie/test_p001.o $(TEST_POOL)/pcie/test_p002.o \
     $(TEST_POOL)/pcie/test_p003.o $(TEST_POOL)/pcie/test_p004.o \
     $(TEST_POOL)/pcie/test_p005.o $(TEST_POOL)/pcie/test_p006.o \
-    $(TEST_POOL)/pcie/test_p007.o
+    $(TEST_POOL)/pcie/test_p007.o $(TEST_POOL)/pcie/test_p008.o \
+    $(TEST_POOL)/pcie/test_p009.o $(TEST_POOL)/pcie/test_p010.o \
+    $(TEST_POOL)/pcie/test_p011.o $(TEST_POOL)/pcie/test_p012.o \
+    $(TEST_POOL)/pcie/test_p013.o $(TEST_POOL)/pcie/test_p014.o \
+    $(TEST_POOL)/pcie/test_p015.o
 
 ccflags-y=-I$(PWD)/$(ACS_DIR)/val/ -I$(PWD)/$(ACS_DIR)/platform/pal_linux/ -I$(PWD)/$(ACS_DIR)/ -DTARGET_LINUX
 
