@@ -20,6 +20,11 @@
  */
 
 #include "include/pal_linux.h"
+#include <linux/acpi.h>
+#include <acpi/platform/aclinux.h>
+#include <acpi/actypes.h>
+#include <acpi/actbl.h>
+#include <acpi/actbl1.h>
 
 /**
   @brief  This API fills in the PE_INFO Table with information about the PEs in the
@@ -32,21 +37,36 @@
 void
 pal_pe_create_info_table(PE_INFO_TABLE *PeTable)
 {
-  //EFI_ACPI_6_1_GIC_STRUCTURE    *Entry;
-  PE_INFO_ENTRY                 *Ptr = PeTable->pe_info;
+  unsigned int                       length=0, table_length=0;
+  PE_INFO_ENTRY                      *ptr;
+  struct acpi_table_madt             *madt;
+  struct acpi_madt_generic_interrupt *entry;
 
 
+  madt = (struct acpi_table_madt *)pal_get_madt_ptr();
+
+  if (!madt)
+      return;
+
+  table_length = madt->header.length;
+  length = sizeof(struct acpi_table_madt);
+  entry = (struct acpi_madt_generic_interrupt *) &madt[1];
   PeTable->header.num_of_pe = 0;
+  ptr = PeTable->pe_info;
 
-  //Fill in the cpu num and the mpidr in pe info table
-  Ptr->mpidr    = 0;
-  Ptr->pe_num   = PeTable->header.num_of_pe;
-  Ptr->pmu_gsiv = 27;
-  //Print(L"FOUND an entry %x %x \n", Ptr->mpidr, Ptr->pe_num);
- // pal_pe_data_cache_ops_by_va((UINT64)Ptr, CLEAN_AND_INVALIDATE);
-  Ptr++;
-  PeTable->header.num_of_pe++;
-  
+  do {
+      if (entry->header.type == ACPI_MADT_TYPE_GENERIC_INTERRUPT) {
+          ptr->mpidr    = entry->arm_mpidr;
+          ptr->pe_num   = PeTable->header.num_of_pe;
+          ptr->pmu_gsiv = entry->performance_interrupt;
+          sbsa_print(AVS_PRINT_DEBUG, "MPIDR %llx PE num %x \n", ptr->mpidr, ptr->pe_num);
+          ptr++;
+          PeTable->header.num_of_pe++;
+      }
+      length += entry->header.length;
+      entry = (struct acpi_madt_generic_interrupt *) ((u8 *)entry + (entry->header.length));
+
+  } while(length < table_length);
 }
 
 /**

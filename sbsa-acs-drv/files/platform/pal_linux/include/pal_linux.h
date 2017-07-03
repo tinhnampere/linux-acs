@@ -49,6 +49,8 @@ uint64_t pal_get_iort_ptr(void);
 
 uint64_t pal_get_mcfg_ptr(void);
 
+uint64_t pal_get_madt_ptr(void);
+
 #define MIN_NUM_MSG 20
 #define NUM_MSG_GROW(n) n*2
 typedef struct __PAL_SBSA_MSG__ {
