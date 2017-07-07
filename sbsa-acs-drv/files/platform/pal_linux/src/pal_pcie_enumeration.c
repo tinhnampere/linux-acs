@@ -75,5 +75,5 @@ unsigned int
 pal_pcie_get_bdf(struct pci_dev *dev)
 {
 
-  return (PCIE_CREATE_BDF(0, dev->bus->number, (dev->devfn >> 3), (dev->devfn & 7)));
+  return (PCIE_CREATE_BDF(pci_domain_nr(dev->bus), dev->bus->number, PCI_SLOT(dev->devfn), PCI_FUNC(dev->devfn)));
 }
