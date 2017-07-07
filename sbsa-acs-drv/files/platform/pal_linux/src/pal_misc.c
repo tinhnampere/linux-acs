@@ -25,7 +25,7 @@
 
 unsigned int *gSharedMemory;
 
-int tail_msg = 0;
+extern int tail_msg;
 int num_msg = MIN_NUM_MSG;
 /**
   @brief  Provides a single point of abstraction to read from all 
@@ -86,7 +86,7 @@ pal_mmio_write(uint64_t addr, uint32_t data)
 void
 pal_print(char *string, uint64_t data)
 {
-  char buf[MSG_SIZE], *tmp;
+  char buf[MSG_SIZE], *tmp=NULL;
 
   if(tail_msg >= num_msg) {
     tmp = kmalloc(NUM_MSG_GROW(num_msg) * sizeof(pal_msg_parms_t), GFP_KERNEL);

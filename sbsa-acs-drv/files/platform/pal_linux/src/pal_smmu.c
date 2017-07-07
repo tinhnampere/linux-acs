@@ -35,7 +35,7 @@ void
 pal_smmu_device_start_monitor_iova(void *port)
 {
 	if (((struct ata_port *)port)->dev->bus->iommu_ops == NULL) {
-        sbsa_print(AVS_PRINT_WARN, "\n         This device is not behind an SMMU ");
+        sbsa_print(AVS_PRINT_WARN, "\n       This device is not behind an SMMU ");
 		return;
 	}
 
@@ -46,7 +46,7 @@ void
 pal_smmu_device_stop_monitor_iova(void *port)
 {
 	if (((struct ata_port *)port)->dev->bus->iommu_ops == NULL) {
-                sbsa_print(AVS_PRINT_WARN, "\n         This device is not behind an SMMU ");
+                sbsa_print(AVS_PRINT_WARN, "\n       This device is not behind an SMMU ");
                 return;
         }
 	sbsa_iommu_dev_stop_monitor(((struct ata_port *)port)->dev);
@@ -70,7 +70,7 @@ pal_smmu_check_device_iova(void *port, unsigned long long dma_addr)
 	phys_addr_t phys;
 
 	if (((struct ata_port *)port)->dev->bus->iommu_ops == NULL) {
-		sbsa_print(AVS_PRINT_WARN, "\n         This device is not behind an SMMU ");
+		sbsa_print(AVS_PRINT_WARN, "\n       This device is not behind an SMMU ");
 		return PAL_LINUX_SKIP;
 	}
 

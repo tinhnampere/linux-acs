@@ -74,7 +74,7 @@ extern uint32_t g_print_level;
 
 #define sbsa_print(verbosity, string, ...)  \
                                  if(verbosity >= g_print_level) {\
-                                     char buf[sizeof(pal_msg_parms_t)], *tmp; \
+                                     char buf[sizeof(pal_msg_parms_t)], *tmp=NULL; \
                                      if(tail_msg >= num_msg) { \
                                        tmp = kmalloc(NUM_MSG_GROW(num_msg) * sizeof(pal_msg_parms_t), GFP_KERNEL); \
                                        if(tmp) { \

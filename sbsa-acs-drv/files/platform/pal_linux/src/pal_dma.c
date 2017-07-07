@@ -179,7 +179,7 @@ pal_dma_start_to_device(void *dma_source_buf, unsigned int length,
         int ret;
         struct scsi_device *sdev = (struct scsi_device *)target;
 
-        memset(cmd, 0, 15);
+        memset(cmd, 0, 10);
 
         cmd[0] = WRITE_10;
         cmd[8] = 1;  //one block only for now

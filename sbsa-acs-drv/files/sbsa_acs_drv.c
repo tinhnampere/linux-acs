@@ -49,7 +49,7 @@ uint64_t  *g_dma_info_ptr;
 uint64_t  *g_iovirt_info_ptr;
 
 char *g_msg_buf;
-extern int tail_msg;
+int tail_msg;
 extern int num_msg;
 
 int
@@ -58,6 +58,11 @@ val_glue_execute_command(void)
     g_print_level = params.arg1;
     if (params.api_num == SBSA_CREATE_INFO_TABLES)
     {
+        g_sbsa_tests_total = 0;
+        g_sbsa_tests_pass = 0;
+        g_sbsa_tests_fail = 0;
+        tail_msg = 0;
+
         g_msg_buf = (char*) kmalloc(num_msg * sizeof(test_msg_parms_t), GFP_KERNEL);
 
         g_pe_info_ptr = kmalloc(PE_INFO_TBL_SZ, GFP_KERNEL);
@@ -97,6 +102,11 @@ val_glue_execute_command(void)
     {
         params.arg0 = DRV_STATUS_PENDING;
         val_pcie_execute_tests(params.level, params.num_pe);
+        val_print(AVS_PRINT_TEST, "\n     ------------------------------------------------------------", 0);
+        val_print(AVS_PRINT_TEST, "\n      Total Tests Run = %2d, ", g_sbsa_tests_total);
+        val_print(AVS_PRINT_TEST, "Tests Passed = %2d, ", g_sbsa_tests_pass);
+        val_print(AVS_PRINT_TEST, "Tests Failed = %2d ", g_sbsa_tests_fail);
+        val_print(AVS_PRINT_TEST, "\n     ------------------------------------------------------------", 0);
         params.arg0 = DRV_STATUS_AVAILABLE;
         params.arg1 = val_get_status(0);
     }
@@ -126,16 +136,17 @@ static
 ssize_t sbsa_proc_read(struct file *sp_file,char __user *buf, size_t size, loff_t *offset)
 {
 
-    copy_to_user(buf,&params,len);
+    int var;
+    var = copy_to_user(buf,&params,len);
     return len;
 }
 
 static
 ssize_t sbsa_proc_write(struct file *sp_file,const char __user *buf, size_t size, loff_t *offset)
 {
-
+    int var;
     len = size;
-    copy_from_user(&params,buf,len);
+    var = copy_from_user(&params,buf,len);
     val_glue_execute_command();
     return len;
 }
@@ -144,26 +155,20 @@ static
 ssize_t sbsa_msg_proc_read(struct file *sp_file,char __user *buf, size_t size, loff_t *offset)
 {
     int length;
-    len = (tail_msg)*sizeof(test_msg_parms_t);
+    len = sizeof(test_msg_parms_t);
+    if(*offset == (tail_msg*len)) len=0;
+
     length = simple_read_from_buffer(buf, len, offset, g_msg_buf, num_msg * sizeof(test_msg_parms_t));
-    tail_msg = 0;
-    memset(g_msg_buf, 0, sizeof(test_msg_parms_t) * num_msg);
+
+    if(length != 0)
+      memset(g_msg_buf+(*offset)-len, 0, sizeof(test_msg_parms_t));
+
     return length;
-}
-
-static
-ssize_t sbsa_msg_proc_write(struct file *sp_file,const char __user *buf, size_t size, loff_t *offset)
-{
-
-    len = size;
-    copy_from_user(&msg_params,buf,len);
-    return len;
 }
 
 struct file_operations sbsa_msg_fops = {
     .open = sbsa_proc_open,
     .read = sbsa_msg_proc_read,
-    .write = sbsa_msg_proc_write,
     .release = sbsa_proc_release
 };
 
