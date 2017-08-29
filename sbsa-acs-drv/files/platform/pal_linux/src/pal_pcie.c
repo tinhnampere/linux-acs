@@ -424,3 +424,8 @@ pal_pcie_get_dma_coherent(uint32_t bus, uint32_t dev, uint32_t fn)
 
   return ret_val;
 }
+
+uint32_t pal_pcie_read_cfg(uint32_t bdf, uint32_t offset)
+{
+    return 0;
+}
