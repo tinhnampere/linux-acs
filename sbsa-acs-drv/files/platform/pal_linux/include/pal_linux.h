@@ -66,6 +66,8 @@ extern int num_msg;
 
 extern uint32_t g_print_level;
 
+int pal_smmu_check_dev_attach(struct device *dev);
+
 #define AVS_PRINT_ERR   5      /* Only Errors. use this to de-clutter the terminal and focus only on specifics */
 #define AVS_PRINT_WARN  4      /* Only warnings & errors. use this to de-clutter the terminal and focus only on specifics */
 #define AVS_PRINT_TEST  3      /* Test description and result descriptions. THIS is DEFAULT */

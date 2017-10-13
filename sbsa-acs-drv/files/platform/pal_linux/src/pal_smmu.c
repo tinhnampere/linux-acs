@@ -31,11 +31,16 @@
 #define SMMU_V3_IDR1_PASID_SHIFT 6
 #define SMMU_V3_IDR1_PASID_MASK  0x1f
 
+int pal_smmu_check_dev_attach(struct device *dev)
+{
+	return (iommu_get_domain_for_dev(dev) == NULL) ? 0 : 1;
+}
+
 void
 pal_smmu_device_start_monitor_iova(void *port)
 {
-	if (((struct ata_port *)port)->dev->bus->iommu_ops == NULL) {
-        sbsa_print(AVS_PRINT_WARN, "\n       This device is not behind an SMMU ");
+	if (!pal_smmu_check_dev_attach(((struct ata_port *)port)->dev)) {
+		sbsa_print(AVS_PRINT_WARN, "\n       This device is not behind an SMMU ");
 		return;
 	}
 
@@ -45,7 +50,7 @@ pal_smmu_device_start_monitor_iova(void *port)
 void
 pal_smmu_device_stop_monitor_iova(void *port)
 {
-	if (((struct ata_port *)port)->dev->bus->iommu_ops == NULL) {
+	if (!pal_smmu_check_dev_attach(((struct ata_port *)port)->dev)) {
                 sbsa_print(AVS_PRINT_WARN, "\n       This device is not behind an SMMU ");
                 return;
         }
@@ -69,7 +74,7 @@ pal_smmu_check_device_iova(void *port, unsigned long long dma_addr)
         unsigned long int  size;
 	phys_addr_t phys;
 
-	if (((struct ata_port *)port)->dev->bus->iommu_ops == NULL) {
+	if (!pal_smmu_check_dev_attach(((struct ata_port *)port)->dev)) {
 		sbsa_print(AVS_PRINT_WARN, "\n       This device is not behind an SMMU ");
 		return PAL_LINUX_SKIP;
 	}

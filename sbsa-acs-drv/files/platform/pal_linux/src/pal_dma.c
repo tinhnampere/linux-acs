@@ -128,9 +128,8 @@ pal_dma_create_info_table(DMA_INFO_TABLE *dma_info_table)
 					if (dma_info_table->info[j].flags == 0) {
 						dma_info_table->info[j].flags = shost->dma_dev->archdata.dma_coherent;
 					}
-					if (ap->dev->bus->iommu_ops)
+					if (pal_smmu_check_dev_attach(ap->dev))
 						dma_info_table->info[j].flags |= IOMMU_ATTACHED;
-
 					dma_info_table->info[j++].type = sdev->type;
 					dma_info_table->num_dma_ctrls++;
 				}
