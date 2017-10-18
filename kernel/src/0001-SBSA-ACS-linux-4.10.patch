@@ -1,17 +1,18 @@
-From 90dbb80132172f78fc3f02a70c2436d1135f9912 Mon Sep 17 00:00:00 2001
-From: Prasanth P <prasanth.pulla@arm.com>
-Date: Mon, 27 Mar 2017 09:27:46 +0530
-Subject: [PATCH 1/1] SBSA ACS linux 4.10 Patch
+From a64da1ca908093c91e8ba0e7e37d4e2854e484db Mon Sep 17 00:00:00 2001
+From: Mahesh Bireddy <mahesh.reddybireddy@arm.com>
+Date: Wed, 18 Oct 2017 12:27:15 +0530
+Subject: [PATCH] SBSA ACS linux 4.10 rev-1 Patch
 
+Signed-off-by: Mahesh Bireddy <mahesh.reddybireddy@arm.com>
 ---
  drivers/ata/libahci.c          |   4 +
  drivers/ata/sata_sil24.c       |   4 +
  drivers/iommu/Makefile         |   1 +
- drivers/iommu/dma-iommu.c      |   5 ++
+ drivers/iommu/dma-iommu.c      |   7 ++
  drivers/iommu/iommu.c          |   4 +
- drivers/iommu/sbsa-dma-iommu.c | 192 +++++++++++++++++++++++++++++++++++++++++
+ drivers/iommu/sbsa-dma-iommu.c | 198 +++++++++++++++++++++++++++++++++++++++++
  include/linux/sbsa-iommu.h     |  51 +++++++++++
- 7 files changed, 261 insertions(+)
+ 7 files changed, 269 insertions(+)
  create mode 100644 drivers/iommu/sbsa-dma-iommu.c
  create mode 100644 include/linux/sbsa-iommu.h
 
@@ -72,16 +73,18 @@ index 195f7b9..5a3dc9a 100644
  obj-$(CONFIG_IOMMU_IO_PGTABLE_ARMV7S) += io-pgtable-arm-v7s.o
  obj-$(CONFIG_IOMMU_IO_PGTABLE_LPAE) += io-pgtable-arm.o
 diff --git a/drivers/iommu/dma-iommu.c b/drivers/iommu/dma-iommu.c
-index e5f41dc..6ed44cd 100644
+index 2db0d64..824d136 100644
 --- a/drivers/iommu/dma-iommu.c
 +++ b/drivers/iommu/dma-iommu.c
-@@ -49,6 +49,11 @@ static inline struct iova_domain *cookie_iovad(struct iommu_domain *domain)
+@@ -48,6 +48,13 @@ static inline struct iova_domain *cookie_iovad(struct iommu_domain *domain)
  	return &((struct iommu_dma_cookie *)domain->iova_cookie)->iovad;
  }
  
 +struct iova_domain *cookie_iovad_sbsa(struct iommu_domain *domain)
 +{
-+	return cookie_iovad(domain);
++    if (domain)
++	    return cookie_iovad(domain);
++    return NULL;
 +}
 +
  int iommu_dma_init(void)
@@ -111,10 +114,10 @@ index dbe7f65..1f28d5e 100644
  		size_t pgsize = iommu_pgsize(domain, iova | paddr, size);
 diff --git a/drivers/iommu/sbsa-dma-iommu.c b/drivers/iommu/sbsa-dma-iommu.c
 new file mode 100644
-index 0000000..8e6866a
+index 0000000..0df4ace
 --- /dev/null
 +++ b/drivers/iommu/sbsa-dma-iommu.c
-@@ -0,0 +1,192 @@
+@@ -0,0 +1,198 @@
 +/*
 + * The IOMMU-API to SBSA Architecture Compliance Suite glue layer.
 + *
@@ -147,6 +150,7 @@ index 0000000..8e6866a
 +#include <linux/scatterlist.h>
 +#include <linux/vmalloc.h>
 +#include <linux/property.h>
++#include <linux/libata.h>
 +
 +#include <linux/sbsa-iommu.h>
 +
@@ -171,8 +175,13 @@ index 0000000..8e6866a
 +    phys_addr_t *phy_addr, void *in_node)
 +{
 +	struct iova_domain *iovad = cookie_iovad_sbsa(iommu_get_domain_for_dev(dev));
-+	unsigned long shift = iova_shift(iovad);
++	unsigned long shift;
 +	struct rb_node *node;
++
++    if (!iovad)
++        return NULL;
++
++    shift = iova_shift(iovad);
 +
 +	if (in_node == NULL)
 +		node = rb_last(&iovad->rbroot);
@@ -365,5 +374,5 @@ index 0000000..681d2ce
 +#endif
 +
 -- 
-2.7.4
+2.14.1
 

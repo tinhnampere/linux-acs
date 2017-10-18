@@ -1,17 +1,18 @@
-From 3aa144c96fb4af6b8b79d6edc42503ff930bd6df Mon Sep 17 00:00:00 2001
+From 5b5a47708dbef67e5ae262679561b5daca0a637a Mon Sep 17 00:00:00 2001
 From: Mahesh Bireddy <mahesh.reddybireddy@arm.com>
-Date: Tue, 1 Aug 2017 17:08:58 +0530
-Subject: [PATCH] SBSA ACS linux 4.12.4 patch
+Date: Wed, 18 Oct 2017 12:36:40 +0530
+Subject: [PATCH] SBSA ACS linux 4.12.4 rev-1 patch
 
+Signed-off-by: Mahesh Bireddy <mahesh.reddybireddy@arm.com>
 ---
  drivers/ata/libahci.c          |   4 +
  drivers/ata/sata_sil24.c       |   4 +
  drivers/iommu/Makefile         |   1 +
- drivers/iommu/dma-iommu.c      |   5 ++
+ drivers/iommu/dma-iommu.c      |   7 ++
  drivers/iommu/iommu.c          |   4 +
- drivers/iommu/sbsa-dma-iommu.c | 192 +++++++++++++++++++++++++++++++++++++++++
+ drivers/iommu/sbsa-dma-iommu.c | 198 +++++++++++++++++++++++++++++++++++++++++
  include/linux/sbsa-iommu.h     |  51 +++++++++++
- 7 files changed, 261 insertions(+)
+ 7 files changed, 269 insertions(+)
  create mode 100644 drivers/iommu/sbsa-dma-iommu.c
  create mode 100644 include/linux/sbsa-iommu.h
 
@@ -72,16 +73,18 @@ index 195f7b9..5a3dc9a 100644
  obj-$(CONFIG_IOMMU_IO_PGTABLE_ARMV7S) += io-pgtable-arm-v7s.o
  obj-$(CONFIG_IOMMU_IO_PGTABLE_LPAE) += io-pgtable-arm.o
 diff --git a/drivers/iommu/dma-iommu.c b/drivers/iommu/dma-iommu.c
-index 62618e7..8b2fb98 100644
+index 62618e7..41fb30b 100644
 --- a/drivers/iommu/dma-iommu.c
 +++ b/drivers/iommu/dma-iommu.c
-@@ -54,6 +54,11 @@ struct iommu_dma_cookie {
+@@ -54,6 +54,13 @@ struct iommu_dma_cookie {
  	spinlock_t			msi_lock;
  };
  
 +struct iova_domain *cookie_iovad_sbsa(struct iommu_domain *domain)
 +{
-+	return &((struct iommu_dma_cookie *)domain->iova_cookie)->iovad;
++    if (domain)
++	    return &((struct iommu_dma_cookie *)domain->iova_cookie)->iovad;
++    return NULL;
 +}
 +
  static inline size_t cookie_msi_granule(struct iommu_dma_cookie *cookie)
@@ -111,10 +114,10 @@ index cf7ca7e..b6f1f72 100644
  		size_t pgsize = iommu_pgsize(domain, iova | paddr, size);
 diff --git a/drivers/iommu/sbsa-dma-iommu.c b/drivers/iommu/sbsa-dma-iommu.c
 new file mode 100644
-index 0000000..8e6866a
+index 0000000..88d9df1
 --- /dev/null
 +++ b/drivers/iommu/sbsa-dma-iommu.c
-@@ -0,0 +1,192 @@
+@@ -0,0 +1,198 @@
 +/*
 + * The IOMMU-API to SBSA Architecture Compliance Suite glue layer.
 + *
@@ -147,6 +150,7 @@ index 0000000..8e6866a
 +#include <linux/scatterlist.h>
 +#include <linux/vmalloc.h>
 +#include <linux/property.h>
++#include <linux/libata.h>
 +
 +#include <linux/sbsa-iommu.h>
 +
@@ -171,8 +175,13 @@ index 0000000..8e6866a
 +    phys_addr_t *phy_addr, void *in_node)
 +{
 +	struct iova_domain *iovad = cookie_iovad_sbsa(iommu_get_domain_for_dev(dev));
-+	unsigned long shift = iova_shift(iovad);
++	unsigned long shift;
 +	struct rb_node *node;
++
++    if(!iovad)
++        return NULL;
++
++    shift = iova_shift(iovad);
 +
 +	if (in_node == NULL)
 +		node = rb_last(&iovad->rbroot);
@@ -365,5 +374,5 @@ index 0000000..681d2ce
 +#endif
 +
 -- 
-2.13.0
+2.14.1
 

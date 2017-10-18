@@ -24,6 +24,7 @@
 
 #include <linux/kernel.h>
 #include <linux/slab.h>
+#include <linux/device.h>
 #include "val/include/pal_interface.h"
 
 #define PAL_LINUX_SUCCESS  0x0
