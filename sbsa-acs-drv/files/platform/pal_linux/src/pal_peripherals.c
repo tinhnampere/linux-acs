@@ -68,7 +68,7 @@ pal_peripheral_create_info_table(PERIPHERAL_INFO_TABLE *peripheralInfoTable)
            per_info->msi = pdev->msi_enabled;
            per_info->msix = pdev->msix_enabled;
          }
-         per_info->irq   = pdev->irq;
+         per_info->irq = pci_irq_vector(pdev, 0);
          max_pasids = pci_max_pasids(pdev);
          per_info->max_pasids = (max_pasids < 0)?0:max_pasids;
          peripheralInfoTable->header.num_all++;
