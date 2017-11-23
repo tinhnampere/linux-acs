@@ -22,6 +22,7 @@
 
 #include "include/pal_linux.h"
 
+#include <linux/irq.h>
 #include <linux/pci.h>
 #include <linux/msi.h>
 #include <linux/acpi.h>
@@ -37,6 +38,16 @@
 
     @return  vector    MSI(X) vector
 **/
+
+static
+uint32_t irq_to_hwirq(uint32_t irq)
+{
+  struct irq_data *d = irq_get_irq_data(irq);
+  if (d)
+      return d->hwirq;
+  return 0;
+}
+
 static
 void
 pal_pci_read_msi_vector (struct pci_dev *dev, struct msi_desc *entry, PERIPHERAL_VECTOR_BLOCK *vector)
@@ -53,7 +64,7 @@ pal_pci_read_msi_vector (struct pci_dev *dev, struct msi_desc *entry, PERIPHERAL
   vector->vector_upper_addr = 0;
   vector->vector_data = 0;
   vector->vector_control = 0;
-  vector->vector_irq_base = entry->irq;
+  vector->vector_irq_base = irq_to_hwirq(entry->irq);
 
   if (entry->msi_attrib.is_msix) {
     base = entry->mask_base +
