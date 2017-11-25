@@ -44,7 +44,7 @@ dump_block(IOVIRT_BLOCK *block)
           sbsa_print(AVS_PRINT_INFO, "\nNamed Component:\n Device Name:%s\n", block->data.name);
           break;
       case ACPI_IORT_NODE_PCI_ROOT_COMPLEX:
-          sbsa_print(AVS_PRINT_INFO, "\nRoot Complex:\n PCI segment number:%d\n", block->data.segment);
+          sbsa_print(AVS_PRINT_INFO, "\nRoot Complex:\n PCI segment number:%d\n", block->data.rc.segment);
           break;
       case ACPI_IORT_NODE_SMMU:
       case ACPI_IORT_NODE_SMMU_V3:
@@ -225,9 +225,9 @@ iovirt_add_block(struct acpi_table_iort *iort, struct acpi_iort_node *iort_node,
             count = &iovirt_table->num_named_components;
             break;
         case ACPI_IORT_NODE_PCI_ROOT_COMPLEX:
-            (*data).segment = ((struct acpi_iort_root_complex*)node_data)->pci_segment_number;
-            memcpy(&(*data_map).id[0], &((struct acpi_iort_root_complex*)node_data)->memory_properties, sizeof(uint32_t) * 3);
-            (*block)->num_data_map = 1;
+            (*data).rc.segment = ((struct acpi_iort_root_complex*)node_data)->pci_segment_number;
+            (*data).rc.cca = (uint32_t)(((struct acpi_iort_root_complex*)node_data)->memory_properties & IOVIRT_CCA_MASK);
+            (*data).rc.ats_attr = ((struct acpi_iort_root_complex*)node_data)->ats_attribute;
             count = &iovirt_table->num_pci_rcs;
             break;
         case ACPI_IORT_NODE_SMMU:
