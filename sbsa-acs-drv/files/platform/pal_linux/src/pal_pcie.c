@@ -101,7 +101,7 @@ pal_pci_read_msi_vector (struct pci_dev *dev, struct msi_desc *entry, PERIPHERAL
     @return  number of MSI(X) vectors
 **/
 uint32_t
-pal_get_msi_vectors (uint32_t bus, uint32_t dev, uint32_t fn, PERIPHERAL_VECTOR_LIST **mvector)
+pal_get_msi_vectors (uint32_t seg, uint32_t bus, uint32_t dev, uint32_t fn, PERIPHERAL_VECTOR_LIST **mvector)
 {
   struct pci_dev *pdev;
   struct msi_desc *entry;
@@ -114,7 +114,7 @@ pal_get_msi_vectors (uint32_t bus, uint32_t dev, uint32_t fn, PERIPHERAL_VECTOR_
   if(mvector == NULL)
     return 0;
 
-  pdev = pci_get_bus_and_slot (bus, PCI_DEVFN (dev, fn));
+  pdev = pci_get_domain_bus_and_slot (seg, bus, PCI_DEVFN (dev, fn));
 
   if(pdev != NULL) {
     for_each_pci_msi_entry (entry, pdev) {
@@ -208,7 +208,7 @@ pal_pcie_create_info_table(PCIE_INFO_TABLE *PcieTable)
 **/
 
 uint32_t
-pal_pcie_get_legacy_irq_map(uint32_t bus, uint32_t dev, uint32_t fn, PERIPHERAL_IRQ_MAP *irq_map)
+pal_pcie_get_legacy_irq_map(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t fn, PERIPHERAL_IRQ_MAP *irq_map)
 {
   acpi_status status;
   struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
@@ -218,7 +218,7 @@ pal_pcie_get_legacy_irq_map(uint32_t bus, uint32_t dev, uint32_t fn, PERIPHERAL_
   uint32_t irq_count;
 
   /* Get a root bridge device */
-  pdev = pci_get_bus_and_slot (bus, PCI_DEVFN (dev, fn));
+  pdev = pci_get_domain_bus_and_slot (seg, bus, PCI_DEVFN (dev, fn));
   if (pdev == NULL || !pdev->bus->bridge) {
     return 1;
   }
@@ -284,10 +284,10 @@ pal_pcie_get_legacy_irq_map(uint32_t bus, uint32_t dev, uint32_t fn, PERIPHERAL_
     @return  staus code:0 -> not present, nonzero -> present
 **/
 uint32_t
-pal_pcie_is_device_behind_smmu(uint32_t bus, uint32_t dev, uint32_t fn)
+pal_pcie_is_device_behind_smmu(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t fn)
 {
   struct pci_dev *pdev;
-  pdev = pci_get_bus_and_slot(bus, PCI_DEVFN(dev, fn));
+  pdev = pci_get_domain_bus_and_slot(seg, bus, PCI_DEVFN(dev, fn));
   if(pdev->dev.iommu_group)
       return 1;
   else
