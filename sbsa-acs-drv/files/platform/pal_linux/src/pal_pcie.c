@@ -295,6 +295,31 @@ pal_pcie_is_device_behind_smmu(uint32_t seg, uint32_t bus, uint32_t dev, uint32_
 }
 
 /**
+    @brief   Return the DMA addressability of the device
+
+    @param   bus        PCI bus address
+    @param   dev        PCI device address
+    @param   fn         PCI function number
+
+    @return  DMA Mask : 0, 0xffffffff or 0xffffffffffff
+**/
+uint32_t
+pal_pcie_is_devicedma_64bit(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t fn)
+{
+  struct pci_dev *pdev;
+  pdev = pci_get_domain_bus_and_slot(seg, bus, PCI_DEVFN(dev, fn));
+
+  if (pdev) {
+       sbsa_print(AVS_PRINT_ERR,"dma mask is %lx \n", *pdev->dev.dma_mask);
+      if (*pdev->dev.dma_mask == DMA_BIT_MASK(64))
+          return 1;
+      else
+          return 0;
+  }
+  return 0;
+}
+
+/**
     @brief   Get bdf of root port
 
     @param   bus        PCI bus address
@@ -309,7 +334,7 @@ uint32_t
 pal_pcie_get_root_port_bdf(uint32_t *seg, uint32_t *bus, uint32_t *dev, uint32_t *func)
 {
   struct pci_dev *pdev, *root_port;
-  pdev = pci_get_bus_and_slot(*bus, PCI_DEVFN(*dev, *func));
+  pdev = pci_get_domain_bus_and_slot(*seg, *bus, PCI_DEVFN(*dev, *func));
   if(pdev->bus->self == NULL)
     return 1;
 
@@ -335,10 +360,10 @@ pal_pcie_get_root_port_bdf(uint32_t *seg, uint32_t *bus, uint32_t *dev, uint32_t
              3: PCIe bridge device, else: INVALID
 **/
 uint32_t
-pal_pcie_get_device_type(uint32_t bus, uint32_t dev, uint32_t fn)
+pal_pcie_get_device_type(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t fn)
 {
   struct pci_dev *pdev;
-  pdev = pci_get_bus_and_slot(bus, PCI_DEVFN(dev, fn));
+  pdev = pci_get_domain_bus_and_slot(seg, bus, PCI_DEVFN(dev, fn));
   if(pdev == NULL)
     return 0;
 
@@ -364,12 +389,12 @@ pal_pcie_get_device_type(uint32_t bus, uint32_t dev, uint32_t fn)
              2 device error
 **/
 uint32_t
-pal_pcie_get_snoop_bit(uint32_t bus, uint32_t dev, uint32_t fn)
+pal_pcie_get_snoop_bit(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t fn)
 {
   struct pci_dev *pdev;
   u16 devctl_cap;
   uint32_t ret_val;
-  pdev = pci_get_bus_and_slot(bus, PCI_DEVFN(dev, fn));
+  pdev = pci_get_domain_bus_and_slot(seg, bus, PCI_DEVFN(dev, fn));
   if(pdev == NULL)
     return 2;
 
@@ -392,11 +417,11 @@ pal_pcie_get_snoop_bit(uint32_t bus, uint32_t dev, uint32_t fn)
              2 device error
 **/
 uint32_t
-pal_pcie_get_dma_support(uint32_t bus, uint32_t dev, uint32_t fn)
+pal_pcie_get_dma_support(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t fn)
 {
   struct pci_dev *pdev;
   uint32_t ret_val;
-  pdev = pci_get_bus_and_slot(bus, PCI_DEVFN(dev, fn));
+  pdev = pci_get_domain_bus_and_slot(seg, bus, PCI_DEVFN(dev, fn));
   if(pdev == NULL)
     return 2;
 
@@ -417,13 +442,13 @@ pal_pcie_get_dma_support(uint32_t bus, uint32_t dev, uint32_t fn)
              2 device error
 **/
 uint32_t
-pal_pcie_get_dma_coherent(uint32_t bus, uint32_t dev, uint32_t fn)
+pal_pcie_get_dma_coherent(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t fn)
 {
   struct pci_dev *pdev;
   enum dev_dma_attr dma_attr;
   uint32_t ret_val;
 
-  pdev = pci_get_bus_and_slot(bus, PCI_DEVFN(dev, fn));
+  pdev = pci_get_domain_bus_and_slot(seg, bus, PCI_DEVFN(dev, fn));
   if(pdev == NULL)
     return 2;
 
