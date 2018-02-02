@@ -363,18 +363,19 @@ uint32_t
 pal_pcie_get_device_type(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t fn)
 {
   struct pci_dev *pdev;
+  u16 class;
+
   pdev = pci_get_domain_bus_and_slot(seg, bus, PCI_DEVFN(dev, fn));
   if(pdev == NULL)
     return 0;
+  class = pdev->class >> 8;
 
+  if(class == PCI_CLASS_BRIDGE_HOST)
+	return 2;
   if(!pci_is_bridge(pdev))
     return 1;
-  else{
-    if(pci_upstream_bridge(pdev) == NULL)
-      return 2;
-    else
-      return 3;
-  }
+  else
+    return 3;
 }
 
 /**
