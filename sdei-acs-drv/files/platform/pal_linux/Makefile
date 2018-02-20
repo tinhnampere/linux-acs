@@ -23,9 +23,9 @@ export CROSS_COMPILE ?= aarch64-linux-gnu-
 export ARCH ?= arm64
 
 #since we have copied the files locally
-ACS_DIR ?= ../
+ACS_DIR ?= ../../
 
-PAL_SRC = $(ACS_DIR)/pal_linux/src
+PAL_SRC = $(ACS_DIR)/platform/pal_linux/src
 
 obj-m += sdei_acs_pal.o
 sdei_acs_pal-objs += $(PAL_SRC)/pal_misc.o \
@@ -36,7 +36,7 @@ sdei_acs_pal-objs += $(PAL_SRC)/pal_misc.o \
     $(PAL_SRC)/pal_psci.o \
     $(PAL_SRC)/pal_sdei_interface.o
 
-ccflags-y=-I$(PWD)/$(ACS_DIR)/val/include -I$(PWD)/$(ACS_DIR)/pal_linux/include -I$(PWD)/$(ACS_DIR)/ -DTARGET_LINUX -Wall -Werror
+ccflags-y=-I$(PWD)/$(ACS_DIR)/val/include -I$(PWD)/$(ACS_DIR)/platform/pal_linux/include -I$(PWD)/$(ACS_DIR)/ -DTARGET_LINUX -Wall -Werror
 
 all:
 ifeq ($(KERNEL_SRC),)

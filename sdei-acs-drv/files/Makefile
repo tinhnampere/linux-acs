@@ -27,10 +27,10 @@ ACS_DIR ?= ./
 
 obj-m += sdei_acs.o
 sdei_acs-objs += sdei_acs_drv.o           \
-                 pal_linux/sdei_acs_pal.o \
+                 platform/pal_linux/sdei_acs_pal.o \
                  val/sdei_acs_val.o
 
-ccflags-y=-I$(PWD)/$(ACS_DIR)/val/include -I$(PWD)/$(ACS_DIR)/pal_linux/include -I$(PWD)/$(ACS_DIR)/ -DTARGET_LINUX -Wall -Werror
+ccflags-y=-I$(PWD)/$(ACS_DIR)/val/include -I$(PWD)/$(ACS_DIR)/platform/pal_linux/include -I$(PWD)/$(ACS_DIR)/ -DTARGET_LINUX -Wall -Werror
 
 all:
 ifeq ($(KERNEL_SRC),)

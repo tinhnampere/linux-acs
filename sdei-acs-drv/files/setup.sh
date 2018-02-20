@@ -15,5 +15,4 @@ export SDEI_ACS_PATH=$1
 echo -e "SDEI_ACS_PATH is set to -> \e[93m $SDEI_ACS_PATH\e[0m"
 
 cp -r $SDEI_ACS_PATH/val .
-cp -r $SDEI_ACS_PATH/platform/pal_linux .
 cp -r $SDEI_ACS_PATH/test_pool .
