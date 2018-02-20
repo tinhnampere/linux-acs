@@ -1,8 +1,9 @@
-From d04a6f98c1c8a3dd92cfc460540b7f55d879a547 Mon Sep 17 00:00:00 2001
-From: Sakar Arora <sakaro01@a74729-lin.blr.arm.com>
-Date: Wed, 13 Dec 2017 13:47:37 +0530
-Subject: [PATCH] SBSA-ACS-linux-v4.13
+From fc3522aafe399798231a402b90398d60b26bbd3c Mon Sep 17 00:00:00 2001
+From: Mahesh Bireddy <mahesh.reddybireddy@arm.com>
+Date: Tue, 20 Feb 2018 10:54:07 +0530
+Subject: [PATCH] Enterprise acs linux-v4.13
 
+Signed-off-by: Mahesh Bireddy <mahesh.reddybireddy@arm.com>
 ---
  drivers/ata/libahci.c          |   4 +
  drivers/ata/sata_sil24.c       |   4 +
@@ -10,8 +11,11 @@ Subject: [PATCH] SBSA-ACS-linux-v4.13
  drivers/iommu/dma-iommu.c      |   7 ++
  drivers/iommu/iommu.c          |   4 +
  drivers/iommu/sbsa-dma-iommu.c | 198 +++++++++++++++++++++++++++++++++++++++++
+ drivers/irqchip/irq-gic-v3.c   |  16 ++++
+ include/linux/irqdomain.h      |   2 +
  include/linux/sbsa-iommu.h     |  51 +++++++++++
- 7 files changed, 269 insertions(+)
+ kernel/irq/irqdomain.c         |   1 +
+ 10 files changed, 288 insertions(+)
  create mode 100644 drivers/iommu/sbsa-dma-iommu.c
  create mode 100644 include/linux/sbsa-iommu.h
 
@@ -315,6 +319,58 @@ index 0000000..88d9df1
 +        sbsa_dma_len  = cpu_to_le32(sg_dma_len(sg));
 +}
 +EXPORT_SYMBOL(sbsa_scsi_sata_fill_dma_addr);
+diff --git a/drivers/irqchip/irq-gic-v3.c b/drivers/irqchip/irq-gic-v3.c
+index 984c3ec..f0511a6 100644
+--- a/drivers/irqchip/irq-gic-v3.c
++++ b/drivers/irqchip/irq-gic-v3.c
+@@ -59,6 +59,9 @@ struct gic_chip_data {
+ 	struct partition_desc	*ppi_descs[16];
+ };
+ 
++/* ACS SDEI Patch */
++struct irq_domain *sdei_acs_irq_domain = NULL;
++
+ static struct gic_chip_data gic_data __read_mostly;
+ static struct static_key supports_deactivate = STATIC_KEY_INIT_TRUE;
+ 
+@@ -71,6 +74,14 @@ static struct gic_kvm_info gic_v3_kvm_info;
+ /* Our default, arbitrary priority value. Linux only uses one anyway. */
+ #define DEFAULT_PMR_VALUE	0xf0
+ 
++struct irq_domain* sdei_acs_get_irq_domain(void)
++{
++   if (sdei_acs_irq_domain)
++	   return sdei_acs_irq_domain;
++   return 0;
++}
++EXPORT_SYMBOL(sdei_acs_get_irq_domain);
++
+ static inline unsigned int gic_irq(struct irq_data *d)
+ {
+ 	return d->hwirq;
+@@ -844,6 +855,11 @@ static int gic_irq_domain_alloc(struct irq_domain *domain, unsigned int virq,
+ 			return ret;
+ 	}
+ 
++	/* ACS SDEI Patch */
++   if (domain) {
++	   sdei_acs_irq_domain = domain;
++   }
++
+ 	return 0;
+ }
+ 
+diff --git a/include/linux/irqdomain.h b/include/linux/irqdomain.h
+index cac77a5..b408182 100644
+--- a/include/linux/irqdomain.h
++++ b/include/linux/irqdomain.h
+@@ -565,4 +565,6 @@ static inline bool irq_domain_check_msi_remap(void)
+ }
+ #endif /* !CONFIG_IRQ_DOMAIN */
+ 
++/* ACS SDEI Patch */
++struct irq_domain* sdei_acs_get_irq_domain(void);
+ #endif /* _LINUX_IRQDOMAIN_H */
 diff --git a/include/linux/sbsa-iommu.h b/include/linux/sbsa-iommu.h
 new file mode 100644
 index 0000000..681d2ce
@@ -372,6 +428,18 @@ index 0000000..681d2ce
 +#endif
 +#endif
 +
+diff --git a/kernel/irq/irqdomain.c b/kernel/irq/irqdomain.c
+index f1f2514..d38c125 100644
+--- a/kernel/irq/irqdomain.c
++++ b/kernel/irq/irqdomain.c
+@@ -1447,6 +1447,7 @@ int __irq_domain_alloc_irqs(struct irq_domain *domain, int irq_base,
+ 	irq_free_descs(virq, nr_irqs);
+ 	return ret;
+ }
++EXPORT_SYMBOL(__irq_domain_alloc_irqs);
+ 
+ /**
+  * irq_domain_free_irqs - Free IRQ number and associated data structures
 -- 
 2.7.4
 
