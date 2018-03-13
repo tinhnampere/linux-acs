@@ -25,6 +25,12 @@
 
 #include "include/pal_linux.h"
 
+struct acpi_iort_pmcg {
+        uint64_t base_address;
+        uint32_t overflow_interrupt_gsiv;
+        uint32_t node_reference;
+};
+
 /**
   @brief  Dump the input block
 **/
@@ -50,6 +56,10 @@ dump_block(IOVIRT_BLOCK *block)
       case ACPI_IORT_NODE_SMMU_V3:
           sbsa_print(AVS_PRINT_INFO, "\nSMMU:\n Major Rev:%d\n Base Address:0x%lld\n",
           block->data.smmu.arch_major_rev, block->data.smmu.base);
+      case IOVIRT_NODE_PMCG:
+          sbsa_print(AVS_PRINT_INFO, "\nPMCG:\n Base:0x%llx\n Overflow GSIV:0x%x\n Node Reference:0x%x\n",
+          block->data.pmcg.base, block->data.pmcg.overflow_gsiv, block->data.pmcg.node_ref);
+
         break;
   }
   sbsa_print(AVS_PRINT_INFO, "Number of ID Mappings:%d\n", block->num_data_map);
@@ -66,6 +76,7 @@ dump_iovirt_table(IOVIRT_INFO_TABLE *iort)
 {
   uint32_t i;
   IOVIRT_BLOCK *block = &iort->blocks[0];
+  sbsa_print(AVS_PRINT_INFO, "Number of IOVIRT blocks = %d\n", iort->num_blocks);
   for(i = 0; i < iort->num_blocks; i++, block = IOVIRT_NEXT_BLOCK(block))
     dump_block(block);
 }
@@ -204,6 +215,10 @@ iovirt_add_block(struct acpi_table_iort *iort, struct acpi_iort_node *iort_node,
     NODE_DATA *data = &((*block)->data);
     void *node_data = &(iort_node->node_data[0]);
 
+    sbsa_print(AVS_PRINT_INFO, "IORT node offset:%lx, type: %d\n", (uint8_t*)iort_node - (uint8_t*)iort, iort_node->type);
+
+    memset(data, 0, sizeof(NODE_DATA));
+
     /* Populate the fields independent of node type */
     (*block)->type = iort_node->type;
     (*block)->num_data_map = iort_node->mapping_count;
@@ -240,10 +255,22 @@ iovirt_add_block(struct acpi_table_iort *iort, struct acpi_iort_node *iort_node,
             (*data).smmu.arch_major_rev = 3;
             count = &iovirt_table->num_smmus;
             break;
+        case IOVIRT_NODE_PMCG:
+            (*data).pmcg.base = ((struct acpi_iort_pmcg *)node_data)->base_address;
+            (*data).pmcg.overflow_gsiv = ((struct acpi_iort_pmcg *)node_data)->overflow_interrupt_gsiv;
+            (*data).pmcg.node_ref = ((struct acpi_iort_pmcg *)node_data)->node_reference;
+            next_block = ACPI_ADD_PTR(IOVIRT_BLOCK, data_map, (*block)->num_data_map * sizeof(NODE_DATA_MAP));
+            offset = iovirt_add_block(iort, ACPI_ADD_PTR(struct acpi_iort_node, iort, (*data).pmcg.node_ref),
+                                    iovirt_table, &next_block);
+            (*data).pmcg.node_ref = offset;
+            count = &iovirt_table->num_pmcgs;
+            break;
         default:
             sbsa_print(AVS_PRINT_ERR, "Invalid IORT node type\n");
             return (uint32_t) -1;
     }
+
+    (*block)->flags = 0;
 
     /* Have we already added this block? */
     /* If so, return the block offset */
@@ -251,7 +278,6 @@ iovirt_add_block(struct acpi_table_iort *iort, struct acpi_iort_node *iort_node,
     if(offset)
         return offset;
 
-    (*block)->flags = 0;
     if(iort_node->type == ACPI_IORT_NODE_SMMU) {
         if(!smmu_ctx_int_distinct(ACPI_ADD_PTR(uint64_t, iort_node, ((struct acpi_iort_smmu *)node_data)->context_interrupt_offset),
                                ((struct acpi_iort_smmu *)node_data)->context_interrupt_count))
@@ -314,6 +340,7 @@ pal_iovirt_create_info_table(IOVIRT_INFO_TABLE *iovirt_table)
     iovirt_table->num_pci_rcs = 0;
     iovirt_table->num_named_components = 0;
     iovirt_table->num_its_groups = 0;
+    iovirt_table->num_pmcgs = 0;
 
     iort = (struct acpi_table_iort *)pal_get_iort_ptr();
 
