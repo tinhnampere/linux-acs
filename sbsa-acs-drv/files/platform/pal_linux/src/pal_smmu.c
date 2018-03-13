@@ -33,6 +33,8 @@
 
 int pal_smmu_check_dev_attach(struct device *dev)
 {
+	if (!dev)
+		return 0;
 	return (iommu_get_domain_for_dev(dev) == NULL) ? 0 : 1;
 }
 

@@ -40,7 +40,7 @@
 #define TIMER_INFO_TBL_SZ          1024
 #define WD_INFO_TBL_SZ             512
 #define MEM_INFO_TBL_SZ            4096
-#define IOVIRT_INFO_TBL_SZ         4096
+#define IOVIRT_INFO_TBL_SZ         8192
 #define PERIPHERAL_INFO_TBL_SZ     2883584
 #define PCIE_INFO_TBL_SZ           1024
 #define DMA_INFO_TBL_SZ            1024
