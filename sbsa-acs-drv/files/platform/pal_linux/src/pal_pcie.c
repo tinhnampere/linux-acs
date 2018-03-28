@@ -310,7 +310,7 @@ pal_pcie_is_devicedma_64bit(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t f
   pdev = pci_get_domain_bus_and_slot(seg, bus, PCI_DEVFN(dev, fn));
 
   if (pdev) {
-       sbsa_print(AVS_PRINT_ERR,"dma mask is %llx \n", *pdev->dev.dma_mask);
+       sbsa_print(AVS_PRINT_INFO,"dma mask is %llx \n", *pdev->dev.dma_mask);
       if (*pdev->dev.dma_mask == DMA_BIT_MASK(64))
           return 1;
       else
