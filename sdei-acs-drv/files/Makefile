@@ -39,7 +39,8 @@ ifeq ($(KERNEL_SRC),)
 else
 	echo "Kernel source is set to $(KERNEL_SRC)"
 endif
-
+	(cd ./val; make)
+	(cd ./platform/pal_linux;make)
 	make -C $(KERNEL_SRC) M=$(PWD) modules
 
 modules_install:
