@@ -25,6 +25,7 @@
 #include <acpi/actbl.h>
 #include <acpi/actbl1.h>
 #include <linux/irq.h>
+#include <linux/version.h>
 #include <linux/irqdomain.h>
 #include <linux/interrupt.h>
 
@@ -167,7 +168,9 @@ uint32_t pal_gic_install_isr(uint32_t int_id, void *isr)
 	fwspec->param[1] = 0;
 	fwspec->param[2] = 0;
 	fwspec->fwnode = domain->fwnode;
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4,14,0)
 	fwspec->fwnode->type = FWNODE_IRQCHIP;
+#endif
 
 	if (irq_domain_is_hierarchy(domain)) {
 		virq = irq_domain_alloc_irqs(domain, 1, NUMA_NO_NODE, fwspec);
