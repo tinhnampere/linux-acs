@@ -61,13 +61,12 @@ pal_peripheral_create_info_table(PERIPHERAL_INFO_TABLE *peripheralInfoTable)
        if (pdev != NULL) {
          per_info->base0 = pal_pcie_get_base (pdev, BAR0);
          per_info->bdf = pal_pcie_get_bdf (pdev);
-         per_info->flags = pci_dev_msi_enabled (pdev)? PER_FLAG_MSI_ENABLED : 0;
-         per_info->msi = 0;
-         per_info->msix = 0;
-         if (pci_dev_msi_enabled (pdev)) {
-           per_info->msi = pdev->msi_enabled;
-           per_info->msix = pdev->msix_enabled;
-         }
+         per_info->msi = pdev->msi_cap;
+         per_info->msix = pdev->msix_cap;
+         if (per_info->msi || per_info->msix)
+            per_info->flags = PER_FLAG_MSI_ENABLED;
+         else
+             per_info->flags = 0;
          per_info->irq = pci_irq_vector(pdev, 0);
          max_pasids = pci_max_pasids(pdev);
          per_info->max_pasids = (max_pasids < 0)?0:max_pasids;
@@ -99,6 +98,30 @@ pal_peripheral_create_info_table(PERIPHERAL_INFO_TABLE *peripheralInfoTable)
 
 }
 
+/**
+    @brief   Check if PCI device is PCI Express capable
+
+    @param   seg        PCI segment number
+    @param   bus        PCI bus address
+    @param   dev        PCI device address
+    @param   fn         PCI function number
+
+    @return  staus code:
+             1: PCIe capable,  0: No PCIe capable
+**/
+uint32_t pal_peripheral_is_pcie(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t fn)
+{
+    struct pci_dev *pdev;
+
+    pdev = pci_get_domain_bus_and_slot(seg, bus, PCI_DEVFN(dev, fn));
+    if (pdev == NULL)
+        return 0;
+
+    if (pci_is_pcie(pdev))
+        return 1;
+    else
+        return 0;
+}
 
 unsigned long long
 pal_memory_ioremap(void *addr, uint32_t size, uint32_t attr)
