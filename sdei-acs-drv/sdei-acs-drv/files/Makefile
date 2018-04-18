@@ -1,5 +1,5 @@
 ## @file
- # SDEI ACS PAL Kernel module Makefile
+ # SDEI ACS Kernel module Makefile
  #
  # This program is free software; you can redistribute it and/or modify
  # it under the terms of the GNU General Public License version 2 as
@@ -23,20 +23,14 @@ export CROSS_COMPILE ?= aarch64-linux-gnu-
 export ARCH ?= arm64
 
 #since we have copied the files locally
-ACS_DIR ?= ../../
+ACS_DIR ?= ./
 
-PAL_SRC = $(ACS_DIR)/platform/pal_linux/src
+obj-m += sdei_acs.o
+sdei_acs-objs += sdei_acs_drv.o \
+                 sdei_acs_pal.o \
+                 sdei_acs_val.o
 
-obj-m += sdei_acs_pal.o
-sdei_acs_pal-objs += $(PAL_SRC)/pal_misc.o \
-    $(PAL_SRC)/pal_acpi.o \
-    $(PAL_SRC)/pal_pe.o \
-    $(PAL_SRC)/pal_wd_timer.o \
-    $(PAL_SRC)/pal_gic.o \
-    $(PAL_SRC)/pal_psci.o \
-    $(PAL_SRC)/pal_sdei_interface.o
-
-ccflags-y=-I$(PWD)/$(ACS_DIR)/val/include -I$(PWD)/$(ACS_DIR)/platform/pal_linux/include -I$(PWD)/$(ACS_DIR)/ -DTARGET_LINUX -Wall -Werror
+ccflags-y=-I$(PWD)/$(ACS_DIR)/val/include  -I$(PWD)/$(ACS_DIR)/ -DTARGET_LINUX -Wall -Werror
 
 all:
 ifeq ($(KERNEL_SRC),)
@@ -45,7 +39,6 @@ ifeq ($(KERNEL_SRC),)
 else
 	echo "Kernel source is set to $(KERNEL_SRC)"
 endif
-
 	make -C $(KERNEL_SRC) M=$(PWD) modules
 
 modules_install:
