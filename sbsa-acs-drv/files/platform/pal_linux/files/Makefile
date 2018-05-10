@@ -1,5 +1,4 @@
 ## @file
- # SBSA ACS Kernel module Makefile
  #
  # This program is free software; you can redistribute it and/or modify
  # it under the terms of the GNU General Public License version 2 as
@@ -15,23 +14,23 @@
  #
  # Copyright (C) 2016-2018 Arm Limited
  #
- # Author: Prasanth Pulla <prasanth.pulla@arm.com>
- #
 ##
 
 export CROSS_COMPILE ?= aarch64-linux-gnu-
 export ARCH ?= arm64
 
 #since we have copied the files locally
-ACS_DIR ?= ./
+ACS_DIR ?= .
 
-obj-m += sbsa_acs.o
-sbsa_acs-objs += sbsa_acs_drv.o       \
-                 sbsa_acs_val.o       \
-                 sbsa_acs_test.o      \
-                 sbsa_acs_pal.o
+PAL_SRC = $(ACS_DIR)/src
 
-ccflags-y=-I$(PWD)/$(ACS_DIR)/include -I$(PWD)/$(ACS_DIR)/ -DTARGET_LINUX -Wall -Werror
+obj-m += sbsa_acs_pal.o
+sbsa_acs_pal-objs += $(PAL_SRC)/pal_misc.o \
+    $(PAL_SRC)/pal_pe.o   $(PAL_SRC)/pal_pcie.o   $(PAL_SRC)/pal_pcie_enumeration.o \
+    $(PAL_SRC)/pal_smmu.o $(PAL_SRC)/pal_iovirt.o $(PAL_SRC)/pal_peripherals.o \
+    $(PAL_SRC)/pal_dma.o  $(PAL_SRC)/pal_acpi.o
+
+ccflags-y=-I$(PWD)/$(ACS_DIR)/val/include -I$(PWD)/$(ACS_DIR)/include -I$(PWD) -I$(PWD)/../../ -DTARGET_LINUX -Wall -Werror
 
 all:
 ifeq ($(KERNEL_SRC),)
