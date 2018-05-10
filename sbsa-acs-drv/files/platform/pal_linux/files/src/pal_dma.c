@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Copyright (C) 2017 ARM Limited
+ * Copyright (C) 2016-2018 Arm Limited
  *
  * Author: Prasanth Pulla <prasanth.pulla@arm.com>
  *
@@ -80,10 +80,15 @@ pal_dma_scsi_get_dma_addr(void *port, void *dma_addr, unsigned int *dma_len)
 }
 
 void
-pal_dma_mem_free(void *buffer, dma_addr_t mem_dma, unsigned int length, void **port, unsigned int flags)
+pal_dma_mem_free(void *buffer, addr_t mem_dma, unsigned int length, void *port, unsigned int flags)
 {
 
-       dmam_free_coherent(((struct ata_port *)port)->dev, length, buffer, mem_dma);
+    if (flags == DMA_COHERENT) {
+        dmam_free_coherent(((struct ata_port *)port)->dev, length, buffer, mem_dma);
+    } else {
+        dma_unmap_single(((struct ata_port *)port)->dev, mem_dma, length, DMA_BIDIRECTIONAL);
+        kfree(buffer);
+    }
 
 }
 
