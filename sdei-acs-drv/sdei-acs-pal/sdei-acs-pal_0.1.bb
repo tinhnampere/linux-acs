@@ -8,7 +8,7 @@ inherit module
 SRC_URI = " file://Makefile \
             file://include/  \
             file://src/  \
-            file://val/include/pal_interface.h \
+            file://val/  \
             file://COPYING \
             "
 S = "${WORKDIR}"

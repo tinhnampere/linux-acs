@@ -28,7 +28,8 @@ ACS_DIR ?= ./
 obj-m += sdei_acs.o
 sdei_acs-objs += sdei_acs_drv.o \
                  sdei_acs_pal.o \
-                 sdei_acs_val.o
+                 sdei_acs_val.o \
+		 sdei_acs_test.o
 
 ccflags-y=-I$(PWD)/$(ACS_DIR)/val/include  -I$(PWD)/$(ACS_DIR)/ -DTARGET_LINUX -Wall -Werror
 
