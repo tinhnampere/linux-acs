@@ -22,14 +22,17 @@
 #include <linux/acpi_iort.h>
 #include <linux/kernel.h>
 #include <linux/pci.h>
+#include <linux/version.h>
 
 #include "include/pal_linux.h"
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4,18,0)
 struct acpi_iort_pmcg {
-        uint64_t base_address;
-        uint32_t overflow_interrupt_gsiv;
-        uint32_t node_reference;
+	uint64_t page0_base_address;
+	uint32_t overflow_gsiv;
+	uint32_t node_reference;
 };
+#endif
 
 /**
   @brief  Dump the input block
@@ -256,8 +259,8 @@ iovirt_add_block(struct acpi_table_iort *iort, struct acpi_iort_node *iort_node,
             count = &iovirt_table->num_smmus;
             break;
         case IOVIRT_NODE_PMCG:
-            (*data).pmcg.base = ((struct acpi_iort_pmcg *)node_data)->base_address;
-            (*data).pmcg.overflow_gsiv = ((struct acpi_iort_pmcg *)node_data)->overflow_interrupt_gsiv;
+            (*data).pmcg.base = ((struct acpi_iort_pmcg *)node_data)->page0_base_address;
+            (*data).pmcg.overflow_gsiv = ((struct acpi_iort_pmcg *)node_data)->overflow_gsiv;
             (*data).pmcg.node_ref = ((struct acpi_iort_pmcg *)node_data)->node_reference;
             next_block = ACPI_ADD_PTR(IOVIRT_BLOCK, data_map, (*block)->num_data_map * sizeof(NODE_DATA_MAP));
             offset = iovirt_add_block(iort, ACPI_ADD_PTR(struct acpi_iort_node, iort, (*data).pmcg.node_ref),
