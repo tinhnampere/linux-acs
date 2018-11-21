@@ -65,6 +65,7 @@ pal_pci_read_msi_vector (struct pci_dev *dev, struct msi_desc *entry, PERIPHERAL
   vector->vector_data = 0;
   vector->vector_control = 0;
   vector->vector_irq_base = irq_to_hwirq(entry->irq);
+  vector->vector_mapped_irq_base = entry->irq;
   vector->vector_n_irqs = entry->nvec_used;
 
   if (entry->msi_attrib.is_msix) {

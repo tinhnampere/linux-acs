@@ -28,9 +28,9 @@ obj-m += sbsa_acs_pal.o
 sbsa_acs_pal-objs += $(PAL_SRC)/pal_misc.o \
     $(PAL_SRC)/pal_pe.o   $(PAL_SRC)/pal_pcie.o   $(PAL_SRC)/pal_pcie_enumeration.o \
     $(PAL_SRC)/pal_smmu.o $(PAL_SRC)/pal_iovirt.o $(PAL_SRC)/pal_peripherals.o \
-    $(PAL_SRC)/pal_dma.o  $(PAL_SRC)/pal_acpi.o
+    $(PAL_SRC)/pal_dma.o  $(PAL_SRC)/pal_acpi.o $(PAL_SRC)/pal_gic.o $(PAL_SRC)/pal_exerciser.o
 
-ccflags-y=-I$(PWD)/$(ACS_DIR)/val/include -I$(PWD)/$(ACS_DIR)/include -I$(PWD) -I$(PWD)/../../ -DTARGET_LINUX -Wall -Werror
+ccflags-y=-I$(PWD)/$(ACS_DIR)/val/include -I$(PWD)/$(ACS_DIR)/include -I$(PWD) -I$(PWD)/../../  -I$(PWD)/../../../  -DTARGET_LINUX -Wall -Werror
 
 all:
 ifeq ($(KERNEL_SRC),)

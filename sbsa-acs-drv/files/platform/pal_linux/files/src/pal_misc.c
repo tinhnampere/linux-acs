@@ -113,6 +113,21 @@ pal_print_raw(uint64_t addr, char *string, uint64_t data)
 }
 
 /**
+  @brief  Allocates memory of the requested size
+
+  @param  sizeo - Size of memory region to be allocated
+
+  @return Virtual address if success, NULL on failure
+**/
+void *
+pal_mem_alloc(unsigned int size)
+{
+
+  return kzalloc(size, GFP_KERNEL);
+
+}
+
+/**
   @brief  Free the memory allocated by UEFI Framework APIs
   @param  Buffer the base address of the memory range to be freed
 

@@ -77,3 +77,53 @@ pal_pcie_get_bdf(struct pci_dev *dev)
 
   return (PCIE_CREATE_BDF(pci_domain_nr(dev->bus), dev->bus->number, PCI_SLOT(dev->devfn), PCI_FUNC(dev->devfn)));
 }
+
+unsigned int
+pal_pcie_get_bdf_wrapper(unsigned int class_code, unsigned int start_bdf)
+{
+  uint32_t bus;
+  uint32_t dev;
+  uint32_t fn;
+  struct pci_dev *pdev;
+
+  if (start_bdf == 0) {
+      pdev = pal_pci_get_dev(class_code, NULL);
+  } else {
+      bus = PCIE_EXTRACT_BDF_BUS(start_bdf);
+      dev = PCIE_EXTRACT_BDF_DEV(start_bdf);
+      fn = PCIE_EXTRACT_BDF_FUNC(start_bdf);
+      pdev = pci_get_bus_and_slot(bus, PCI_DEVFN(dev, fn));
+  }
+
+  return pal_pcie_get_bdf(pdev);
+}
+
+void pal_pci_read_config_byte(uint32_t bdf, uint8_t offset, uint8_t *val)
+{
+  uint32_t bus;
+  uint32_t dev;
+  uint32_t fn;
+  struct pci_dev *pdev;
+
+  bus = PCIE_EXTRACT_BDF_BUS(bdf);
+  dev = PCIE_EXTRACT_BDF_DEV(bdf);
+  fn = PCIE_EXTRACT_BDF_FUNC(bdf);
+  pdev = pci_get_bus_and_slot(bus, PCI_DEVFN(dev, fn));
+
+  pci_read_config_byte(pdev, offset, val);
+}
+
+void pal_pci_write_config_byte(uint32_t bdf, uint8_t offset, uint8_t val)
+{
+  uint32_t bus;
+  uint32_t dev;
+  uint32_t fn;
+  struct pci_dev *pdev;
+
+  bus = PCIE_EXTRACT_BDF_BUS(bdf);
+  dev = PCIE_EXTRACT_BDF_DEV(bdf);
+  fn = PCIE_EXTRACT_BDF_FUNC(bdf);
+  pdev = pci_get_bus_and_slot(bus, PCI_DEVFN(dev, fn));
+
+  pci_write_config_byte(pdev, offset, val);
+}
