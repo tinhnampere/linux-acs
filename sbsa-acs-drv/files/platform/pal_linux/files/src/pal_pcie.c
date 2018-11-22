@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Copyright (C) 2017 ARM Limited
+ * Copyright (C) 2016-2018 Arm Limited
  *
  * Author: Prasanth Pulla <prasanth.pulla@arm.com>
  *         Daniil Egranov <daniil.egranov@arm.com>
@@ -318,6 +318,42 @@ pal_pcie_is_devicedma_64bit(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t f
           return 0;
   }
   return 0;
+}
+
+/**
+    @brief   This API scans bridge devices and checks memory type
+
+    @param   bus        PCI bus address
+    @param   dev        PCI device address
+    @param   fn         PCI function number
+    @param   seg        PCI segment number
+
+    @return  0 -> 32-bit mem type, 1 -> 64-bit mem type
+**/
+uint32_t pal_pcie_scan_bridge_devices_and_check_memtype(uint32_t seg, uint32_t bus,
+                                                        uint32_t dev,uint32_t fn)
+{
+    struct pci_dev *pdev;
+    struct pci_dev *child_dev;
+    uint16_t data = 0;
+    uint32_t status = 0;
+    uint8_t mem_type;
+
+    pdev = pci_get_domain_bus_and_slot(seg, bus, PCI_DEVFN(dev, fn));
+
+    list_for_each_entry(child_dev, &pdev->bus->devices, bus_list) {
+        if (child_dev) {
+            pci_read_config_word(child_dev, 0x10, &data);
+            if (data) {
+                mem_type = data & 0x6;
+                if (mem_type != 0) {
+                    status = 1;
+                    break;
+                }
+            }
+        }
+    }
+    return status;
 }
 
 /**

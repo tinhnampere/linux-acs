@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Copyright (C) 2017 ARM Limited
+ * Copyright (C) 2016-2018 Arm Limited
  *
  * Author: Prasanth Pulla <prasanth.pulla@arm.com>
  *
@@ -205,6 +205,7 @@ void __exit exit_sbsaproc(void)
     printk("exit SBSA Driver \n");
 }
 
+MODULE_INFO(intree, "Y");
 MODULE_LICENSE("GPL");
 module_init(init_sbsaproc);
 module_exit(exit_sbsaproc);
