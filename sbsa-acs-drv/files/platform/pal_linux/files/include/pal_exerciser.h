@@ -24,8 +24,8 @@
 
 #define EXERCISER_CLASSCODE 0x010203
 #define MAX_ARRAY_SIZE 32
-#define MAX_REG_COUNT 10
-#define MAX_DMA_CAP_REGION_CNT 10
+#define TEST_REG_COUNT 10
+#define TEST_DDR_REGION_CNT 5
 
 typedef struct {
     uint64_t buf[MAX_ARRAY_SIZE];
@@ -70,7 +70,7 @@ typedef enum {
     GENERATE_L_INTR = 0x3,  //Legacy interrupt
     MEM_READ      = 0x4,
     MEM_WRITE     = 0x5,
-    HANDLE_INTR   = 0x6,
+    CLEAR_INTR    = 0x6,
     PASID_TLP_START = 0x7,
     PASID_TLP_STOP  = 0x8,
     NO_SNOOP_TLP_START = 0x9,
@@ -88,8 +88,8 @@ struct ecam_reg_data {
     uint32_t value;
 };
 
-struct exerciser_data_ecam {
-    struct ecam_reg_data reg[MAX_REG_COUNT];
+struct exerciser_data_cfg_space {
+    struct ecam_reg_data reg[TEST_REG_COUNT];
 };
 
 typedef enum {
@@ -109,42 +109,19 @@ typedef enum {
     MMIO_NON_PREFETCHABLE = 0x1
 } BAR_MEM_TYPE;
 
-struct exerciser_data_bar {
+struct exerciser_data_bar_space {
     void *base_addr;
     BAR_MEM_TYPE type;
 };
 
-struct ddr_addr_dma_cap {
-    void *phy_addr;
-    void *virt_addr;
-    uint32_t size;
-};
-
-struct exerciser_data_mul_ddr {
-    struct ddr_addr_dma_cap base[MAX_DMA_CAP_REGION_CNT];    //DMA capable ddr regions
-    uint32_t base_cnt_dma_cap;
-};
-
-struct exerciser_data_ddr {
-    void *phy_addr;
-    void *virt_addr;
-    uint32_t size;
-};
-
 typedef union exerciser_data {
-    struct exerciser_data_ecam ecam;
-    struct exerciser_data_bar bar;
-    struct exerciser_data_mul_ddr ddr;
-    struct exerciser_data_ddr cs_ddr;
-    struct exerciser_data_ddr nc_ddr;
+    struct exerciser_data_cfg_space cfg_space;
+    struct exerciser_data_bar_space bar_space;
 } exerciser_data_t;
 
 typedef enum {
     EXERCISER_DATA_CFG_SPACE = 0x1,
     EXERCISER_DATA_BAR0_SPACE = 0x2,
-    EXERCISER_DATA_MCS_DDR_SPACE = 0x3, //Multiple cacheable, shareable regions
-    EXERCISER_DATA_CS_DDR_SPACE = 0x4,  //Single cacheable, shareable region
-    EXERCISER_DATA_NC_DDR_SPACE = 0x5   //Single non-cacheable region
 } EXERCISER_DATA_TYPE;
 
 

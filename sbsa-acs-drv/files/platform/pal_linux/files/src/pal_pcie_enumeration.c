@@ -23,6 +23,7 @@
 #include <linux/pci.h>
 
 #include "include/sbsa_pcie_enum.h"
+#include "include/pal_linux.h"
 
 
 /**
@@ -69,7 +70,7 @@ pal_pcie_get_base(struct pci_dev *dev, unsigned int bar_index)
 {
 
   return dev->resource[bar_index].start;
-} 
+}
 
 unsigned int
 pal_pcie_get_bdf(struct pci_dev *dev)
@@ -79,51 +80,78 @@ pal_pcie_get_bdf(struct pci_dev *dev)
 }
 
 unsigned int
-pal_pcie_get_bdf_wrapper(unsigned int class_code, unsigned int start_bdf)
+pal_pcie_get_bdf_wrapper(unsigned int class_code, unsigned int bdf)
 {
+  uint32_t seg;
   uint32_t bus;
   uint32_t dev;
   uint32_t fn;
   struct pci_dev *pdev;
 
-  if (start_bdf == 0) {
-      pdev = pal_pci_get_dev(class_code, NULL);
-  } else {
-      bus = PCIE_EXTRACT_BDF_BUS(start_bdf);
-      dev = PCIE_EXTRACT_BDF_DEV(start_bdf);
-      fn = PCIE_EXTRACT_BDF_FUNC(start_bdf);
-      pdev = pci_get_bus_and_slot(bus, PCI_DEVFN(dev, fn));
+  pdev = NULL;
+  if (bdf) {
+      seg  = PCIE_EXTRACT_BDF_SEG (bdf);
+      bus = PCIE_EXTRACT_BDF_BUS(bdf);
+      dev = PCIE_EXTRACT_BDF_DEV(bdf);
+      fn = PCIE_EXTRACT_BDF_FUNC(bdf);
+      pdev = pci_get_domain_bus_and_slot(seg, bus, PCI_DEVFN(dev, fn));
   }
 
+  pdev = pal_pci_get_dev(class_code, pdev);
   return pal_pcie_get_bdf(pdev);
+}
+
+void *
+pal_pci_bdf_to_dev(unsigned int bdf)
+{
+  uint32_t seg;
+  uint32_t bus;
+  uint32_t dev;
+  uint32_t fn;
+  struct pci_dev *pdev;
+
+  seg  = PCIE_EXTRACT_BDF_SEG (bdf);
+  bus = PCIE_EXTRACT_BDF_BUS(bdf);
+  dev = PCIE_EXTRACT_BDF_DEV(bdf);
+  fn = PCIE_EXTRACT_BDF_FUNC(bdf);
+  pdev = pci_get_domain_bus_and_slot(seg, bus, PCI_DEVFN(dev, fn));
+
+  if (pdev)
+      return ((void *)(&pdev->dev));
+
+  return NULL;
 }
 
 void pal_pci_read_config_byte(uint32_t bdf, uint8_t offset, uint8_t *val)
 {
+  uint32_t seg;
   uint32_t bus;
   uint32_t dev;
   uint32_t fn;
   struct pci_dev *pdev;
 
+  seg  = PCIE_EXTRACT_BDF_SEG (bdf);
   bus = PCIE_EXTRACT_BDF_BUS(bdf);
   dev = PCIE_EXTRACT_BDF_DEV(bdf);
   fn = PCIE_EXTRACT_BDF_FUNC(bdf);
-  pdev = pci_get_bus_and_slot(bus, PCI_DEVFN(dev, fn));
+  pdev = pci_get_domain_bus_and_slot(seg, bus, PCI_DEVFN(dev, fn));
 
   pci_read_config_byte(pdev, offset, val);
 }
 
 void pal_pci_write_config_byte(uint32_t bdf, uint8_t offset, uint8_t val)
 {
+  uint32_t seg;
   uint32_t bus;
   uint32_t dev;
   uint32_t fn;
   struct pci_dev *pdev;
 
+  seg  = PCIE_EXTRACT_BDF_SEG (bdf);
   bus = PCIE_EXTRACT_BDF_BUS(bdf);
   dev = PCIE_EXTRACT_BDF_DEV(bdf);
   fn = PCIE_EXTRACT_BDF_FUNC(bdf);
-  pdev = pci_get_bus_and_slot(bus, PCI_DEVFN(dev, fn));
+  pdev = pci_get_domain_bus_and_slot(seg, bus, PCI_DEVFN(dev, fn));
 
   pci_write_config_byte(pdev, offset, val);
 }

@@ -25,6 +25,7 @@
 #include "val/include/sbsa_avs_common.h"
 #include "val/include/sbsa_avs_val.h"
 #include "val/include/sbsa_avs_pcie.h"
+#include "val/include/sbsa_avs_exerciser.h"
 
 test_params_t params;
 test_msg_parms_t msg_params;
@@ -96,6 +97,19 @@ val_glue_execute_command(void)
         kfree(g_iovirt_info_ptr);
         kfree(g_msg_buf);
 
+    }
+
+    if (params.api_num == SBSA_EXERCISER_EXECUTE_TEST)
+    {
+        params.arg0 = DRV_STATUS_PENDING;
+        val_exerciser_execute_tests(params.level);
+        val_print(AVS_PRINT_TEST, "\n     ------------------------------------------------------------", 0);
+        val_print(AVS_PRINT_TEST, "\n      Total Tests Run = %2d, ", g_sbsa_tests_total);
+        val_print(AVS_PRINT_TEST, "Tests Passed = %2d, ", g_sbsa_tests_pass);
+        val_print(AVS_PRINT_TEST, "Tests Failed = %2d ", g_sbsa_tests_fail);
+        val_print(AVS_PRINT_TEST, "\n     ------------------------------------------------------------", 0);
+        params.arg0 = DRV_STATUS_AVAILABLE;
+        params.arg1 = val_get_status(0);
     }
 
     if (params.api_num == SBSA_PCIE_EXECUTE_TEST)

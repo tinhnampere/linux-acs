@@ -31,9 +31,7 @@ unsigned int pal_gic_install_isr(unsigned int int_id, void (*isr)(void))
     struct irq_domain *domain = NULL;
     struct irq_fwspec *fwspec;
 
-    /* To Do
-     * domain = acs_get_irq_domain();
-     */
+    domain = acs_get_irq_domain();
     if (!domain) {
         sbsa_print(AVS_PRINT_ERR, "\n       Domain is null");
         return 1;
@@ -71,11 +69,7 @@ unsigned int pal_gic_install_isr(unsigned int int_id, void (*isr)(void))
     }
 
     ret = request_irq(virq, (irq_handler_t)isr, flags, "SBSA", NULL);
-    if (ret == -EBUSY) {
-        sbsa_print(AVS_PRINT_WARN, "\n       IRQ is already in use");
-        ret = 2;
-        goto error;
-    } else if ((ret != -EBUSY) && (ret != 0)) {
+    if (ret != 0) {
         sbsa_print(AVS_PRINT_ERR, "\n       IRQ registration failure %x", int_id);
         sbsa_print(AVS_PRINT_ERR, " \n      err %d", ret);
         ret = 1;
@@ -92,7 +86,7 @@ void pal_gic_end_of_interrupt(unsigned int int_id)
   return;
 }
 
-int pal_gic_request_irq(unsigned int irq_num, unsigned int mapped_irq_num, void *isr)
+uint32_t pal_gic_request_irq(unsigned int irq_num, unsigned int mapped_irq_num, void *isr)
 {
     return request_irq(mapped_irq_num, (irq_handler_t)isr, 0, NULL, NULL);
 }
