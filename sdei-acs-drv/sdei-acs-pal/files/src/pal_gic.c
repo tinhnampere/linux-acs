@@ -150,7 +150,7 @@ uint32_t pal_gic_install_isr(uint32_t int_id, void *isr)
 	struct irq_domain *domain = NULL;
 	struct irq_fwspec *fwspec;
 
-	domain = sdei_acs_get_irq_domain();
+	domain = acs_get_irq_domain();
 	if (!domain) {
 		pal_print(ACS_LOG_ERR, "\n        Domain is null");
 		return 1;
@@ -204,7 +204,7 @@ uint32_t pal_gic_free_interrupt(uint32_t int_id)
 	uint32_t virq;
 	struct irq_domain *domain = NULL;
 
-	domain = sdei_acs_get_irq_domain();
+	domain = acs_get_irq_domain();
 	virq = irq_create_mapping(domain, int_id);
 	free_irq(virq, dev);
 	irq_dispose_mapping(virq);

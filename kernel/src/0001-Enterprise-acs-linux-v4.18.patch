@@ -1,4 +1,4 @@
-From 2c6f16e62f6e1b55db4e6f439bde6c02fe811b9c Mon Sep 17 00:00:00 2001
+From 2c5613674f34977d425619f9f9a43fe2b2e4c7d2 Mon Sep 17 00:00:00 2001
 From: Mahesh Bireddy <mahesh.reddybireddy@arm.com>
 Date: Fri, 2 Nov 2018 10:57:33 +0530
 Subject: [PATCH] Enterprise acs linux-v4.18
@@ -320,15 +320,15 @@ index 0000000..88d9df1
 +}
 +EXPORT_SYMBOL(sbsa_scsi_sata_fill_dma_addr);
 diff --git a/drivers/irqchip/irq-gic-v3.c b/drivers/irqchip/irq-gic-v3.c
-index 76ea56d..9d6adef 100644
+index 76ea56d..6c0342e 100644
 --- a/drivers/irqchip/irq-gic-v3.c
 +++ b/drivers/irqchip/irq-gic-v3.c
 @@ -65,6 +65,8 @@ static DEFINE_STATIC_KEY_TRUE(supports_deactivate_key);
  
  static struct gic_kvm_info gic_v3_kvm_info;
  static DEFINE_PER_CPU(bool, has_rss);
-+/* ACS SDEI Patch */
-+struct irq_domain *sdei_acs_irq_domain = NULL;
++/* ACS GIC Patch */
++struct irq_domain *acs_irq_domain = NULL;
  
  #define MPIDR_RS(mpidr)			(((mpidr) & 0xF0UL) >> 4)
  #define gic_data_rdist()		(this_cpu_ptr(gic_data.rdists.rdist))
@@ -336,13 +336,13 @@ index 76ea56d..9d6adef 100644
  /* Our default, arbitrary priority value. Linux only uses one anyway. */
  #define DEFAULT_PMR_VALUE	0xf0
  
-+struct irq_domain* sdei_acs_get_irq_domain(void)
++struct irq_domain* acs_get_irq_domain(void)
 +{
-+   if (sdei_acs_irq_domain)
-+	   return sdei_acs_irq_domain;
++   if (acs_irq_domain)
++	   return acs_irq_domain;
 +   return 0;
 +}
-+EXPORT_SYMBOL(sdei_acs_get_irq_domain);
++EXPORT_SYMBOL(acs_get_irq_domain);
 +
  static inline unsigned int gic_irq(struct irq_data *d)
  {
@@ -351,24 +351,24 @@ index 76ea56d..9d6adef 100644
  			return ret;
  	}
  
-+	/* ACS SDEI Patch */
++	/* ACS GIC Patch */
 +   if (domain) {
-+	   sdei_acs_irq_domain = domain;
++	   acs_irq_domain = domain;
 +   }
 +
  	return 0;
  }
  
 diff --git a/include/linux/irqdomain.h b/include/linux/irqdomain.h
-index dccfa65..9b926cd 100644
+index dccfa65..c8917d2 100644
 --- a/include/linux/irqdomain.h
 +++ b/include/linux/irqdomain.h
 @@ -579,4 +579,6 @@ static inline bool irq_domain_check_msi_remap(void)
  }
  #endif /* !CONFIG_IRQ_DOMAIN */
  
-+/* ACS SDEI Patch */
-+struct irq_domain* sdei_acs_get_irq_domain(void);
++/* ACS GIC Patch */
++struct irq_domain* acs_get_irq_domain(void);
  #endif /* _LINUX_IRQDOMAIN_H */
 diff --git a/include/linux/sbsa-iommu.h b/include/linux/sbsa-iommu.h
 new file mode 100644
