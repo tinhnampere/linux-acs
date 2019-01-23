@@ -21,6 +21,7 @@
 
 #include <linux/slab.h>
 #include <asm/io.h>
+#include <linux/dma-mapping.h>
 #include "include/pal_linux.h"
 
 unsigned int *gSharedMemory;
@@ -113,6 +114,42 @@ pal_print_raw(uint64_t addr, char *string, uint64_t data)
 }
 
 /**
+  @brief  Allocates memory of the requested size
+
+  @param  sizeo - Size of memory region to be allocated
+
+  @return Virtual address if success, NULL on failure
+**/
+void *
+pal_mem_alloc(unsigned int size)
+{
+
+  return kzalloc(size, GFP_KERNEL);
+
+}
+
+/**
+  @brief  Allocates memory of the requested size
+
+  @param  size  - Size of memory region to be allocated
+  @param  dev   - Pointer to the requesting device structure
+  @param  pa    - Physical address of the allocated memory
+
+  @return virtual address if success, NULL on failure
+**/
+void *
+pal_mem_alloc_coherent(void *dev, unsigned int size, void *pa)
+{
+  void *buf_virt;
+  dma_addr_t buf_phys;
+
+  buf_virt = dma_alloc_coherent((struct device *)dev, size, &buf_phys, GFP_KERNEL);
+
+  pa = (void *)buf_phys;
+  return buf_virt;
+}
+
+/**
   @brief  Free the memory allocated by UEFI Framework APIs
   @param  Buffer the base address of the memory range to be freed
 
@@ -123,6 +160,35 @@ pal_mem_free(void *buffer)
 {
 
   kfree(buffer);
+}
+
+/**
+  @brief  Free the memory allocated by Linux DMA Framework APIs
+
+  @param  dev   - Pointer to the requesting device structure
+  @param  size  - Size of memory region to be freed
+  @param  va    - Virtual address of the memory to be freed
+  @param  pa    - Physical address of the memory to be freed
+
+  @return None
+**/
+void
+pal_mem_free_coherent(void *dev, unsigned int size, void *va, void *pa)
+{
+  dma_free_coherent((struct device *)dev, size, va, (dma_addr_t)pa);
+}
+
+/**
+  @brief  Returns the physical address of the input virtual address
+
+  @param  va    - Virtual address of the memory to be converted
+
+  @return Physical address
+**/
+void *
+pal_mem_virt_to_phys(void *va)
+{
+  return (void *)virt_to_phys(va);
 }
 
 /**

@@ -43,4 +43,16 @@ pal_pcie_get_base(struct pci_dev *dev, unsigned int bar_index);
 unsigned int
 pal_pcie_get_bdf(struct pci_dev *dev);
 
+unsigned int
+pal_pcie_get_bdf_wrapper(unsigned int class_code, unsigned int start_bdf);
+
+void *
+pal_pci_bdf_to_dev(unsigned int bdf);
+
+void
+pal_pci_read_config_byte(uint32_t bdf, uint8_t offset, uint8_t *val);
+
+void
+pal_pci_write_config_byte(uint32_t bdf, uint8_t offset, uint8_t val);
+
 #endif

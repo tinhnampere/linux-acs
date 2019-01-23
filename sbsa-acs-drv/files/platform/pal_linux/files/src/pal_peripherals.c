@@ -126,8 +126,28 @@ uint32_t pal_peripheral_is_pcie(uint32_t seg, uint32_t bus, uint32_t dev, uint32
 unsigned long long
 pal_memory_ioremap(void *addr, uint32_t size, uint32_t attr)
 {
-
-    return ((unsigned long long)ioremap_wc((phys_addr_t)addr, size));
+    switch(attr) {
+        case DEVICE_nGnRnE:
+            return ((unsigned long long)pci_remap_cfgspace((phys_addr_t)addr, size));
+            break;
+        case DEVICE_nGnRE:
+            return ((unsigned long long)ioremap((phys_addr_t)addr, size));
+            break;
+        case DEVICE_nGRE:
+            return ((unsigned long long)ioremap((phys_addr_t)addr, size));
+            break;
+        case DEVICE_GRE:
+            return ((unsigned long long)ioremap((phys_addr_t)addr, size));
+            break;
+        case NORMAL_NC:
+            return ((unsigned long long)ioremap_wc((phys_addr_t)addr, size));
+            break;
+        case NORMAL_WT:
+            return ((unsigned long long)ioremap_wt((phys_addr_t)addr, size));
+            break;
+        default:
+            return ((unsigned long long)ioremap_wc((phys_addr_t)addr, size));
+    }
 
 }
 

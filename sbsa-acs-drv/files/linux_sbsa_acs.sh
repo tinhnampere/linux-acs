@@ -17,7 +17,7 @@ then
     exit 0
 fi
 
-cd $SBSA_ACS_PATH/pal_linux/files
+cd $SBSA_ACS_PATH/platform/pal_linux/files
 make
 cp sbsa_acs_pal.o $SBSA_ACS_PATH/
 

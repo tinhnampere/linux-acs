@@ -65,6 +65,7 @@ pal_pci_read_msi_vector (struct pci_dev *dev, struct msi_desc *entry, PERIPHERAL
   vector->vector_data = 0;
   vector->vector_control = 0;
   vector->vector_irq_base = irq_to_hwirq(entry->irq);
+  vector->vector_mapped_irq_base = entry->irq;
   vector->vector_n_irqs = entry->nvec_used;
 
   if (entry->msi_attrib.is_msix) {
@@ -416,6 +417,27 @@ pal_pcie_get_device_type(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t fn)
 }
 
 /**
+    @brief   Get the PCIe device/port type
+
+    @param   bus        PCI bus address
+    @param   dev        PCI device address
+    @param   fn         PCI function number
+
+    @return  Returns PCIe device/port type
+**/
+uint32_t
+pal_pcie_get_pcie_type(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t fn)
+{
+  struct pci_dev *pdev;
+
+  pdev = pci_get_domain_bus_and_slot(seg, bus, PCI_DEVFN(dev, fn));
+  if(pdev == NULL)
+    return 0;
+
+ return pci_pcie_type(pdev);
+}
+
+/**
     @brief   Get the PCIe device snoop bit transaction attribute
 
     @param   bus        PCI bus address
@@ -497,6 +519,67 @@ pal_pcie_get_dma_coherent(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t fn)
   }
 
   return ret_val;
+}
+
+void
+pal_pcie_read_ext_cap_word(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t fn,
+                           uint32_t ext_cap_id, uint8_t offset, uint16_t *val)
+{
+  struct pci_dev *pdev;
+  int pos;
+
+  pdev = pci_get_domain_bus_and_slot(seg, bus, PCI_DEVFN(dev, fn));
+  if(pdev == NULL) {
+      *val = 0;
+      return;
+  }
+
+  pos = pci_find_ext_capability(pdev, ext_cap_id);
+  if (!pos) {
+      *val = 0;
+      return;
+  }
+
+  pci_read_config_word(pdev, pos + offset, val);
+}
+
+/**
+  @brief   This API checks the PCIe device P2P support
+           1. Caller       -  Test Suite
+  @param   bdf      - PCIe BUS/Device/Function
+  @return  1 - P2P feature not supported 0 - P2P feature supported
+**/
+uint32_t
+pal_pcie_p2p_support(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t fn)
+{
+  /*
+   * TODO
+   * Root port or Switch support for peer to peer
+   * transactions is platform implementation specific
+   */
+
+  return 1;
+}
+
+/**
+  @brief   This API checks the PCIe device multifunction support
+           1. Caller       -  Test Suite
+  @param   bdf      - PCIe BUS/Device/Function
+  @return  1 - Multifunction feature not supported 0 - Multifunction feature supported
+**/
+uint32_t
+pal_pcie_multifunction_support(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t fn)
+{
+  struct pci_dev *pdev;
+
+  pdev = pci_get_domain_bus_and_slot(seg, bus, PCI_DEVFN(dev, fn));
+  if(pdev == NULL)
+      return 1;
+
+  if (!pdev->multifunction)
+      return 1;
+
+  return 0;
 }
 
 uint32_t pal_pcie_read_cfg(uint32_t bdf, uint32_t offset, uint32_t *data)
