@@ -15,4 +15,3 @@ echo -e "AVS_PATH is set to -> \e[93m $AVS_PATH\e[0m"
 
 cp -r $AVS_PATH/val .
 cp -r $AVS_PATH/test_pool .
-cp -r $AVS_PATH/platform/pal_linux .
