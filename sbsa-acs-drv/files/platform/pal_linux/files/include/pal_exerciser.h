@@ -25,7 +25,7 @@
 #define EXERCISER_CLASSCODE 0x010203
 #define MAX_ARRAY_SIZE 32
 #define TEST_REG_COUNT 10
-#define TEST_DDR_REGION_CNT 5
+#define TEST_DDR_REGION_CNT 16
 
 typedef struct {
     uint64_t buf[MAX_ARRAY_SIZE];
@@ -73,8 +73,8 @@ typedef enum {
     CLEAR_INTR    = 0x6,
     PASID_TLP_START = 0x7,
     PASID_TLP_STOP  = 0x8,
-    NO_SNOOP_TLP_START = 0x9,
-    NO_SNOOP_TLP_STOP  = 0xa
+    NO_SNOOP_CLEAR_TLP_START = 0x9,
+    NO_SNOOP_CLEAR_TLP_STOP  = 0xa
 } EXERCISER_OPS;
 
 typedef enum {

@@ -137,10 +137,3 @@ pal_pe_get_esr(void *context)
 {
   return 0;
 }
-
-unsigned int
-BigEndianCheck(unsigned long *ptr)
-{
-
-    return 0;
-}

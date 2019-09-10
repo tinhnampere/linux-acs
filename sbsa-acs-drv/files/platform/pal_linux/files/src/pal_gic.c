@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Copyright (C) 2016-2018 Arm Limited
+ * Copyright (C) 2016-2019 Arm Limited
  *
  */
 
@@ -91,7 +91,7 @@ uint32_t pal_gic_request_irq(unsigned int irq_num, unsigned int mapped_irq_num, 
     return request_irq(mapped_irq_num, (irq_handler_t)isr, 0, NULL, NULL);
 }
 
-void pal_gic_free_interrupt(unsigned int irq_num, unsigned int mapped_irq_num)
+void pal_gic_free_irq(unsigned int irq_num, unsigned int mapped_irq_num)
 {
     free_irq(mapped_irq_num, NULL);
 }

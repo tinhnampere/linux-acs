@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Copyright (C) 2016-2018 Arm Limited
+ * Copyright (C) 2016-2019 Arm Limited
  *
  * Author: Sakar Arora<sakar.arora@arm.com>
  *
@@ -25,6 +25,8 @@
 #include <linux/version.h>
 
 #include "include/pal_linux.h"
+#include "include/sbsa_pcie_enum.h"
+
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4,18,0)
 struct acpi_iort_pmcg {
@@ -214,6 +216,8 @@ iovirt_add_block(struct acpi_table_iort *iort, struct acpi_iort_node *iort_node,
 {
     uint32_t offset, *count, i;
     IOVIRT_BLOCK *next_block;
+    IOVIRT_BLOCK *temp_block;
+    NODE_DATA *temp_data;
     NODE_DATA_MAP *data_map = &((*block)->data_map[0]);
     NODE_DATA *data = &((*block)->data);
     void *node_data = &(iort_node->node_data[0]);
@@ -311,6 +315,20 @@ iovirt_add_block(struct acpi_table_iort *iort, struct acpi_iort_node *iort_node,
             (*data_map).map.output_ref = offset;
             data_map++;
             map++;
+
+           /* Derive the smmu base to which this RC node is connected.
+            * If the RC is behind a SMMU, save SMMU base to RC structure.
+            * Else save NULL pointer.
+            */
+          temp_block = ACPI_ADD_PTR(IOVIRT_BLOCK, iovirt_table, offset);
+          (*data).rc.smmu_base = 0;
+          if (((*block)->type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX) &&
+              ((temp_block->type == ACPI_IORT_NODE_SMMU) ||
+              (temp_block->type == ACPI_IORT_NODE_SMMU_V3))) {
+            temp_data = &(temp_block->data);
+            (*data).rc.smmu_base = (*temp_data).smmu.base;
+          }
+
         }
     }
     /* So we successfully added a new block. Calculate its offset */
@@ -403,4 +421,28 @@ pal_iovirt_unique_rid_strid_map(uint64_t rc_block)
   if(block->flags & (1 << IOVIRT_FLAG_STRID_OVERLAP_SHIFT))
     return 0;
   return 1;
+}
+
+uint64_t
+pal_iovirt_get_rc_smmu_base(IOVIRT_INFO_TABLE *iovirt, uint32_t rc_seg_num)
+{
+  uint32_t i;
+  IOVIRT_BLOCK *block;
+
+  /* As per IORT acpi table, it is assumed that
+   * PCI segment numbers have a one-to-one mapping
+   * with root complexes. Each segment number can
+   * represent only one root complex.
+   */
+  block = &(iovirt->blocks[0]);
+  for(i = 0; i < iovirt->num_blocks; i++, block = IOVIRT_NEXT_BLOCK(block)) {
+    if (block->data.rc.segment == rc_seg_num) {
+      return block->data.rc.smmu_base;
+    }
+  }
+
+  /* The Root Complex represented by rc_seg_num
+   * is not behind any SMMU. Return NULL pointer
+   */
+  return 0;
 }

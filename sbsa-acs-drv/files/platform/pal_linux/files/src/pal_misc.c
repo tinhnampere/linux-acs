@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Copyright (C) 2016-2018 Arm Limited
+ * Copyright (C) 2016-2019 Arm Limited
  *
  * Author: Prasanth Pulla <prasanth.pulla@arm.com>
  *
@@ -131,19 +131,21 @@ pal_mem_alloc(unsigned int size)
 /**
   @brief  Allocates memory of the requested size
 
+  @param  bdf   - BDF of the requesting pcie device
   @param  size  - Size of memory region to be allocated
-  @param  dev   - Pointer to the requesting device structure
   @param  pa    - Physical address of the allocated memory
 
   @return virtual address if success, NULL on failure
 **/
 void *
-pal_mem_alloc_coherent(void *dev, unsigned int size, void *pa)
+pal_mem_alloc_coherent(uint32_t bdf, uint32_t size, void *pa)
 {
   void *buf_virt;
   dma_addr_t buf_phys;
+  struct device *dev;
 
-  buf_virt = dma_alloc_coherent((struct device *)dev, size, &buf_phys, GFP_KERNEL);
+  dev = pal_pci_bdf_to_dev(bdf);
+  buf_virt = dma_alloc_coherent(dev, size, &buf_phys, GFP_KERNEL);
 
   pa = (void *)buf_phys;
   return buf_virt;
@@ -163,9 +165,36 @@ pal_mem_free(void *buffer)
 }
 
 /**
+  @brief  Compare the two input buffer content
+  @param  src   - Source buffer to be compared
+  @dest   dest  - Destination buffer to be compared
+
+  @return Zero if buffer content are equal, else non-zero
+**/
+int
+pal_mem_compare(void *src, void *dest, uint32_t len)
+{
+  return memcmp(src, dest, len);
+}
+
+/**
+  @brie a buffer with a known specified input value
+  @param  buf   - Pointer to the buffer to fill
+  @param  size  - Number of bytes in buffer to fill
+  @param  value - Value to fill buffer with
+
+  @return None
+**/
+void
+pal_mem_set(void *buf, uint32_t size, uint8_t value)
+{
+  memset(buf, value, size);
+}
+
+/**
   @brief  Free the memory allocated by Linux DMA Framework APIs
 
-  @param  dev   - Pointer to the requesting device structure
+  @param  bdf   - BDF of the requesting pcie device
   @param  size  - Size of memory region to be freed
   @param  va    - Virtual address of the memory to be freed
   @param  pa    - Physical address of the memory to be freed
@@ -173,9 +202,12 @@ pal_mem_free(void *buffer)
   @return None
 **/
 void
-pal_mem_free_coherent(void *dev, unsigned int size, void *va, void *pa)
+pal_mem_free_coherent(uint32_t bdf, uint32_t size, void *va, void *pa)
 {
-  dma_free_coherent((struct device *)dev, size, va, (dma_addr_t)pa);
+  struct device *dev;
+
+  dev = pal_pci_bdf_to_dev(bdf);
+  dma_free_coherent(dev, size, va, (dma_addr_t)pa);
 }
 
 /**
