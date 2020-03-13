@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Copyright (C) 2016-2019 Arm Limited
+ * Copyright (C) 2016-2020 Arm Limited
  *
  * Author: Prasanth Pulla <prasanth.pulla@arm.com>
  *
@@ -99,7 +99,7 @@ pal_print(char *string, uint64_t data)
     } else
       tail_msg = tail_msg % num_msg;
   }
-  sprintf(buf, string, data);
+  snprintf(buf, MSG_SIZE, string, data);
   memcpy(g_msg_buf+(tail_msg*MSG_SIZE), buf, sizeof(buf));
   tail_msg = tail_msg+1;
 
@@ -259,4 +259,31 @@ void
 pal_mem_free_shared(void)
 {
   kfree ((void *)gSharedMemory);
+}
+
+/**
+  @brief  Place holder for Memory Copy
+**/
+void *
+pal_memcpy(void *dest_buffer, void *src_buffer, uint32_t len)
+{
+  return NULL;
+}
+
+/**
+  @brief  Place holder for Stalling the CPU for Number of Microseconds
+**/
+uint64_t
+pal_time_delay_ms(uint64_t time_ms)
+{
+  return 0;
+}
+
+/**
+  @brief  Place holder for Comparing two Strings
+**/
+uint32_t
+pal_strncmp(char8_t *str1, char8_t *str2, uint32_t len)
+{
+  return 0;
 }

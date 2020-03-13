@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Copyright (C) 2016-2018 Arm Limited
+ * Copyright (C) 2016-2020 Arm Limited
  *
  * Author: Prasanth Pulla <prasanth.pulla@arm.com>
  *
@@ -46,6 +46,7 @@
 #define PCIE_INFO_TBL_SZ           1024
 #define DMA_INFO_TBL_SZ            1024
 
+#define AVS_PCIE_RCiEP_DISABLE     0
 typedef
 struct __TEST_PARAMS__
 {

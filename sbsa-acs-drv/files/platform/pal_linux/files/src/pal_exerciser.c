@@ -81,13 +81,13 @@ uint32_t pal_exerciser_set_state(EXERCISER_STATE state, uint64_t *value, uint32_
 
 /**
   @brief   This API obtains the state of the PCIe stimulus generation hardware
-  @param   state        - State that is read from the stimulus hadrware
-  @param   value        - Additional information associated with the state
-  @param   instance     - Stimulus hardware instance number
+  @param   state        - State that needs to be set for the stimulus hadrware
+  @param   Bdf          - Stimulus hardware bdf number
   @return  status       - SUCCESS if the state is successfully read from hardware
 **/
-uint32_t pal_exerciser_get_state(EXERCISER_STATE state, uint64_t *value, uint32_t instance)
+uint32_t pal_exerciser_get_state(EXERCISER_STATE *state, uint32_t instance)
 {
+        *state = EXERCISER_ON;
 	return 0;
 }
 

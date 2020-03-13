@@ -88,7 +88,7 @@ int pal_smmu_check_dev_attach(struct device *dev);
                                        } else \
                                          tail_msg = tail_msg % num_msg; \
                                      } \
-                                     sprintf(buf, string, ##__VA_ARGS__); \
+                                     snprintf(buf, MSG_SIZE, string, ##__VA_ARGS__); \
                                      memcpy(g_msg_buf+(tail_msg*sizeof(pal_msg_parms_t)), buf, sizeof(buf));\
                                      tail_msg = (tail_msg+1); \
                                  }

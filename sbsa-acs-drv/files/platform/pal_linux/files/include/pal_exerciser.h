@@ -22,7 +22,6 @@
 
 #include <linux/kernel.h>
 
-#define EXERCISER_CLASSCODE 0x010203
 #define MAX_ARRAY_SIZE 32
 #define TEST_REG_COUNT 10
 #define TEST_DDR_REGION_CNT 16
@@ -130,7 +129,7 @@ uint32_t pal_exerciser_get_info(EXERCISER_INFO_TYPE type, uint32_t instance);
 uint32_t pal_exerciser_set_param(EXERCISER_PARAM_TYPE type, uint64_t value1, uint64_t value2, uint32_t instance);
 uint32_t pal_exerciser_get_param(EXERCISER_PARAM_TYPE type, uint64_t *value1, uint64_t *value2, uint32_t instance);
 uint32_t pal_exerciser_set_state(EXERCISER_STATE state, uint64_t *value, uint32_t instance);
-uint32_t pal_exerciser_get_state(EXERCISER_STATE state, uint64_t *value, uint32_t instance);
+uint32_t pal_exerciser_get_state(EXERCISER_STATE *state, uint32_t bdf);
 uint32_t pal_exerciser_ops(EXERCISER_OPS ops, uint64_t param, uint32_t instance);
 uint32_t pal_exerciser_get_data(EXERCISER_DATA_TYPE type, exerciser_data_t *data, uint32_t instance);
 
