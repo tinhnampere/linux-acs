@@ -118,7 +118,7 @@ pal_dma_create_info_table(DMA_INFO_TABLE *dma_info_table)
 		if (shost) {
 			sdev = NULL;
 			ap = ata_shost_to_port(shost);
-			if (ap == NULL)
+			if ((ap == NULL) || (ap->dev == NULL))
 				continue; //Not a ATA port
 			do {
 				/* get the device connected to this host */
