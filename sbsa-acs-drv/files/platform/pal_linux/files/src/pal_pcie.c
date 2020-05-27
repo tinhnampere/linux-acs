@@ -586,3 +586,11 @@ uint32_t pal_pcie_read_cfg(uint32_t bdf, uint32_t offset, uint32_t *data)
 {
     return 0;
 }
+
+/**
+  @brief  Placeholder To Perform PCIe Enumeration
+ **/
+void pal_pcie_enumerate(void)
+{
+
+}
