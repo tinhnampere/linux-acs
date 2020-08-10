@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Copyright (C) 2016-2018 Arm Limited
+ * Copyright (C) 2016-2018, 2020 Arm Limited
  *
  * Author: Prasanth Pulla <prasanth.pulla@arm.com>
  *
@@ -156,4 +156,15 @@ pal_memory_unmap(void *addr)
 {
 
   iounmap((char *)addr);
+}
+
+/**
+  @brief  Placeholder for Returning the address of unpopulated
+  memory of requested instance.
+
+**/
+unsigned long long
+pal_memory_get_unpopulated_addr(unsigned long long *addr, uint32_t instance)
+{
+  return 0;
 }
