@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Copyright (C) 2016-2018 Arm Limited
+ * Copyright (C) 2016-2020 Arm Limited
  *
  * Author: Prasanth Pulla <prasanth.pulla@arm.com>
  *         Daniil Egranov <daniil.egranov@arm.com>
@@ -544,13 +544,30 @@ pal_pcie_read_ext_cap_word(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t fn
 }
 
 /**
+  @brief   This API checks the PCIe Hierarchy Supports P2P
+           1. Caller       -  Test Suite
+  @return  1 - P2P feature not supported 0 - P2P feature supported
+**/
+uint32_t
+pal_pcie_p2p_support(void)
+{
+  /*
+   * TODO
+   * PCIe support for peer to peer
+   * transactions is platform implementation specific
+   */
+
+  return 1;
+}
+
+/**
   @brief   This API checks the PCIe device P2P support
            1. Caller       -  Test Suite
   @param   bdf      - PCIe BUS/Device/Function
   @return  1 - P2P feature not supported 0 - P2P feature supported
 **/
 uint32_t
-pal_pcie_p2p_support(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t fn)
+pal_pcie_dev_p2p_support(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t fn)
 {
   /*
    * TODO
@@ -582,9 +599,17 @@ pal_pcie_multifunction_support(uint32_t seg, uint32_t bus, uint32_t dev, uint32_
   return 0;
 }
 
-uint32_t pal_pcie_read_cfg(uint32_t bdf, uint32_t offset, uint32_t *data)
+uint32_t pal_pcie_io_read_cfg(uint32_t bdf, uint32_t offset, uint32_t *data)
 {
     return 0;
+}
+
+/**
+  @brief  Placeholder To Perform PCIe Write
+ **/
+void pal_pcie_io_write_cfg(uint32_t bdf, uint32_t offset, uint32_t data)
+{
+
 }
 
 /**
@@ -593,4 +618,14 @@ uint32_t pal_pcie_read_cfg(uint32_t bdf, uint32_t offset, uint32_t *data)
 void pal_pcie_enumerate(void)
 {
 
+}
+
+/**
+  @brief  Placeholder To check if a PCIe device has an Address
+          translation cache or not.
+ **/
+uint32_t
+pal_pcie_is_cache_present(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t fn)
+{
+  return 0;
 }

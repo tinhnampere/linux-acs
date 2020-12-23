@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Copyright (C) 2016-2018 Arm Limited
+ * Copyright (C) 2016-2020 Arm Limited
  *
  */
 
@@ -72,8 +72,10 @@ typedef enum {
     CLEAR_INTR    = 0x6,
     PASID_TLP_START = 0x7,
     PASID_TLP_STOP  = 0x8,
-    NO_SNOOP_CLEAR_TLP_START = 0x9,
-    NO_SNOOP_CLEAR_TLP_STOP  = 0xa
+    TXN_NO_SNOOP_ENABLE  = 0x9,
+    TXN_NO_SNOOP_DISABLE = 0xa,
+    START_TXN_MONITOR    = 0xb,
+    STOP_TXN_MONITOR     = 0xc
 } EXERCISER_OPS;
 
 typedef enum {

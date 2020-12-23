@@ -102,7 +102,7 @@ val_glue_execute_command(void)
     if (params.api_num == SBSA_EXERCISER_EXECUTE_TEST)
     {
         params.arg0 = DRV_STATUS_PENDING;
-        val_exerciser_execute_tests(params.level);
+        //val_exerciser_execute_tests(params.level);
         val_print(AVS_PRINT_TEST, "\n     ------------------------------------------------------------", 0);
         val_print(AVS_PRINT_TEST, "\n      Total Tests Run = %2d, ", g_sbsa_tests_total);
         val_print(AVS_PRINT_TEST, "Tests Passed = %2d, ", g_sbsa_tests_pass);
