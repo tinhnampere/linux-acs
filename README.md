@@ -7,7 +7,7 @@ The present revision of this repository (release on 31-Mar-2021) hosts the kerne
 		The steps required to build and run this code can be found as part of the [SBSA ACS User Guide](https://github.com/ARM-software/sbsa-acs/blob/master/docs/Arm_SBSA_Architecture_Compliance_User_Guide.pdf).
 
 2. SDEI-ACS:
-		The steps required to build and run this code can be found as part of the [SDEI ACS README file](https://github.com/ARM-software/arm-enterprise-acs/blob/sdei-acs-dev/sdei/README.md).
+		The steps required to build and run this code can be found as part of the [SDEI ACS README file](https://github.com/ARM-software/arm-enterprise-acs/tree/master/sdei#readme).
 
 3. FF-A-ACS:
 		The steps required to build and run this code can be found as part of the [ffa-acs-drv/README](./ffa-acs-drv/README.md)
