@@ -1,0 +1,80 @@
+From 104ddfd8a9847a6222da6acff47a400dedaa6d15 Mon Sep 17 00:00:00 2001
+From: Mahesh Bireddy <mahesh.reddybireddy@arm.com>
+Date: Wed, 17 Mar 2021 13:10:07 +0530
+Subject: [PATCH] FFA ACS Linux v5.0
+
+Signed-off-by: Mahesh Bireddy <mahesh.reddybireddy@arm.com>
+---
+ drivers/irqchip/irq-gic-v3.c | 17 +++++++++++++++++
+ include/linux/irqdomain.h    |  2 ++
+ kernel/irq/irqdomain.c       |  1 +
+ 3 files changed, 20 insertions(+)
+
+diff --git a/drivers/irqchip/irq-gic-v3.c b/drivers/irqchip/irq-gic-v3.c
+index 0868a9d81..2cbd78adf 100644
+--- a/drivers/irqchip/irq-gic-v3.c
++++ b/drivers/irqchip/irq-gic-v3.c
+@@ -69,6 +69,9 @@ static DEFINE_STATIC_KEY_TRUE(supports_deactivate_key);
+ static struct gic_kvm_info gic_v3_kvm_info;
+ static DEFINE_PER_CPU(bool, has_rss);
+ 
++/* ACS GIC Patch */
++struct irq_domain *acs_irq_domain = NULL;
++
+ #define MPIDR_RS(mpidr)			(((mpidr) & 0xF0UL) >> 4)
+ #define gic_data_rdist()		(this_cpu_ptr(gic_data.rdists.rdist))
+ #define gic_data_rdist_rd_base()	(gic_data_rdist()->rd_base)
+@@ -98,6 +101,15 @@ static inline void __iomem *gic_dist_base(struct irq_data *d)
+ 	return NULL;
+ }
+ 
++struct irq_domain* acs_get_irq_domain(void)
++{
++   if (acs_irq_domain)
++      return acs_irq_domain;
++
++   return NULL;
++}
++EXPORT_SYMBOL(acs_get_irq_domain);
++
+ static void gic_do_wait_for_rwp(void __iomem *base)
+ {
+ 	u32 count = 1000000;	/* 1s! */
+@@ -1000,6 +1012,11 @@ static int gic_irq_domain_alloc(struct irq_domain *domain, unsigned int virq,
+ 			return ret;
+ 	}
+ 
++    /* ACS GIC Patch */
++    if (domain) {
++       acs_irq_domain = domain;
++    }
++
+ 	return 0;
+ }
+ 
+diff --git a/include/linux/irqdomain.h b/include/linux/irqdomain.h
+index 35965f41d..12f0dd0ac 100644
+--- a/include/linux/irqdomain.h
++++ b/include/linux/irqdomain.h
+@@ -582,4 +582,6 @@ static inline bool irq_domain_check_msi_remap(void)
+ }
+ #endif /* !CONFIG_IRQ_DOMAIN */
+ 
++/* ACS GIC Patch */
++struct irq_domain* acs_get_irq_domain(void);
+ #endif /* _LINUX_IRQDOMAIN_H */
+diff --git a/kernel/irq/irqdomain.c b/kernel/irq/irqdomain.c
+index 8b0be4bd6..9d94c7ad2 100644
+--- a/kernel/irq/irqdomain.c
++++ b/kernel/irq/irqdomain.c
+@@ -1332,6 +1332,7 @@ int __irq_domain_alloc_irqs(struct irq_domain *domain, int irq_base,
+ 	irq_free_descs(virq, nr_irqs);
+ 	return ret;
+ }
++EXPORT_SYMBOL(__irq_domain_alloc_irqs);
+ 
+ /* The irq_data was moved, fix the revmap to refer to the new location */
+ static void irq_domain_fix_revmap(struct irq_data *d)
+-- 
+2.17.1
+
