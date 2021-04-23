@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Copyright (C) 2016-2019 Arm Limited
+ * Copyright (C) 2016-2019, 2021 Arm Limited
  *
  * Author: Prasanth Pulla <prasanth.pulla@arm.com>
  *
@@ -42,7 +42,7 @@ void
 pal_smmu_device_start_monitor_iova(void *port)
 {
 	if (!pal_smmu_check_dev_attach(((struct ata_port *)port)->dev)) {
-		sbsa_print(AVS_PRINT_WARN, "\n       This device is not behind an SMMU ");
+		sbsa_print(AVS_PRINT_WARN, "\n       This device is not behind an SMMU ", 0);
 		return;
 	}
 
@@ -53,7 +53,7 @@ void
 pal_smmu_device_stop_monitor_iova(void *port)
 {
 	if (!pal_smmu_check_dev_attach(((struct ata_port *)port)->dev)) {
-                sbsa_print(AVS_PRINT_WARN, "\n       This device is not behind an SMMU ");
+                sbsa_print(AVS_PRINT_WARN, "\n       This device is not behind an SMMU ", 0);
                 return;
         }
 	sbsa_iommu_dev_stop_monitor(((struct ata_port *)port)->dev);
@@ -77,7 +77,7 @@ pal_smmu_check_device_iova(void *port, unsigned long long dma_addr)
 	phys_addr_t phys;
 
 	if (!pal_smmu_check_dev_attach(((struct ata_port *)port)->dev)) {
-		sbsa_print(AVS_PRINT_WARN, "\n       This device is not behind an SMMU ");
+		sbsa_print(AVS_PRINT_WARN, "\n       This device is not behind an SMMU ", 0);
 		return PAL_LINUX_SKIP;
 	}
 
@@ -97,7 +97,7 @@ pal_smmu_check_device_iova(void *port, unsigned long long dma_addr)
 	do {
 		curr_node = sbsa_iommu_dma_get_iova(((struct ata_port *)port)->dev, &base, &size, &phys, curr_node);
 		if (curr_node) {
-			sbsa_print(AVS_PRINT_INFO, "Device IOVA entry is %llx size = %lx phys = %llx \n", base, size, phys);
+			pr_info("Device IOVA entry is %llx size = %lx phys = %llx \n", base, size, phys);
 			if ((dma_addr >= base) && (dma_addr < (base + size))) {
 					return PAL_LINUX_SUCCESS;
 			}

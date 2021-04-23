@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Copyright (C) 2016-2018 Arm Limited
+ * Copyright (C) 2016-2018, 2021 Arm Limited
  *
  * Author: Prasanth Pulla <prasanth.pulla@arm.com>
  *
@@ -75,22 +75,7 @@ int pal_smmu_check_dev_attach(struct device *dev);
 #define AVS_PRINT_DEBUG 2      /* For Debug statements. contains register dumps etc */
 #define AVS_PRINT_INFO  1      /* Print all statements. Do not use unless really needed */
 
-#define sbsa_print(verbosity, string, ...)  \
-                                 if(verbosity >= g_print_level) {\
-                                     char buf[sizeof(pal_msg_parms_t)], *tmp=NULL; \
-                                     if(tail_msg >= num_msg) { \
-                                       tmp = kmalloc(NUM_MSG_GROW(num_msg) * sizeof(pal_msg_parms_t), GFP_KERNEL); \
-                                       if(tmp) { \
-                                         memcpy(tmp, g_msg_buf, num_msg * sizeof(pal_msg_parms_t)); \
-                                         num_msg = NUM_MSG_GROW(num_msg); \
-                                         kfree(g_msg_buf); \
-                                         g_msg_buf = tmp; \
-                                       } else \
-                                         tail_msg = tail_msg % num_msg; \
-                                     } \
-                                     snprintf(buf, MSG_SIZE, string, ##__VA_ARGS__); \
-                                     memcpy(g_msg_buf+(tail_msg*sizeof(pal_msg_parms_t)), buf, sizeof(buf));\
-                                     tail_msg = (tail_msg+1); \
+#define sbsa_print(verbosity, string, data)  \
+                                 if(verbosity >= g_print_level) {  \
+                                     pal_print(string, data);  \
                                  }
-
-#endif

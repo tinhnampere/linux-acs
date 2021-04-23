@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Copyright (C) 2016-2018 Arm Limited
+ * Copyright (C) 2016-2018, 2021 Arm Limited
  *
  * Author: Prasanth Pulla <prasanth.pulla@arm.com>
  *
@@ -59,7 +59,7 @@ pal_pe_create_info_table(PE_INFO_TABLE *PeTable)
           ptr->mpidr    = entry->arm_mpidr;
           ptr->pe_num   = PeTable->header.num_of_pe;
           ptr->pmu_gsiv = entry->performance_interrupt;
-          sbsa_print(AVS_PRINT_DEBUG, "MPIDR %llx PE num %x \n", ptr->mpidr, ptr->pe_num);
+          pr_info("MPIDR %llx PE num %x \n", ptr->mpidr, ptr->pe_num);
           ptr++;
           PeTable->header.num_of_pe++;
       }

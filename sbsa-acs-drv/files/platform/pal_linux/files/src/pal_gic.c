@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Copyright (C) 2016-2020 Arm Limited
+ * Copyright (C) 2016-2021 Arm Limited
  *
  */
 
@@ -33,13 +33,13 @@ unsigned int pal_gic_install_isr(unsigned int int_id, void (*isr)(void))
 
     domain = acs_get_irq_domain();
     if (!domain) {
-        sbsa_print(AVS_PRINT_ERR, "\n       Domain is null");
+        sbsa_print(AVS_PRINT_ERR, "\n       Domain is null", 0);
         return 1;
     }
 
     fwspec = kmalloc(sizeof(struct irq_fwspec), GFP_KERNEL);
     if (!fwspec) {
-        sbsa_print(AVS_PRINT_ERR, "\n       Kmalloc failed");
+        sbsa_print(AVS_PRINT_ERR, "\n       Kmalloc failed", 0);
         return 1;
     }
 

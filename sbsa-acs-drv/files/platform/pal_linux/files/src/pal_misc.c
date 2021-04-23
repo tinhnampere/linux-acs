@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Copyright (C) 2016-2020 Arm Limited
+ * Copyright (C) 2016-2021 Arm Limited
  *
  * Author: Prasanth Pulla <prasanth.pulla@arm.com>
  *
@@ -23,6 +23,8 @@
 #include <asm/io.h>
 #include <linux/dma-mapping.h>
 #include "include/pal_linux.h"
+#include <linux/module.h>
+#include <linux/kernel.h>
 
 unsigned int *gSharedMemory;
 
@@ -112,7 +114,7 @@ uint32_t pal_mmio_read(uint64_t addr)
   void __iomem *p;
 
   if (addr & 0x3) {
-      sbsa_print(AVS_PRINT_INFO, "\n  Error-Input address is not aligned. Masking the last 2 bits \n");
+      sbsa_print(AVS_PRINT_INFO, "\n  Error-Input address is not aligned. Masking the last 2 bits \n", 0);
       addr = addr & ~(0x3);  //make sure addr is aligned to 4 bytes
   }
   p = ioremap(addr, 16);
@@ -211,22 +213,7 @@ void pal_mmio_write(uint64_t addr, uint32_t data)
 **/
 void pal_print(char *string, uint64_t data)
 {
-  char buf[MSG_SIZE], *tmp=NULL;
-
-  if(tail_msg >= num_msg) {
-    tmp = kmalloc(NUM_MSG_GROW(num_msg) * sizeof(pal_msg_parms_t), GFP_KERNEL);
-    if(tmp) {
-      memcpy(tmp, g_msg_buf, num_msg * sizeof(pal_msg_parms_t));
-      num_msg = NUM_MSG_GROW(num_msg);
-      kfree(g_msg_buf);
-      g_msg_buf = tmp;
-    } else
-      tail_msg = tail_msg % num_msg;
-  }
-  snprintf(buf, MSG_SIZE, string, data);
-  memcpy(g_msg_buf+(tail_msg*MSG_SIZE), buf, sizeof(buf));
-  tail_msg = tail_msg+1;
-
+  printk(string, data);
 }
 
 /**

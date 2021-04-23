@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Copyright (C) 2016-2019 Arm Limited
+ * Copyright (C) 2016-2019, 2021 Arm Limited
  *
  * Author: Sakar Arora<sakar.arora@arm.com>
  *
@@ -49,31 +49,31 @@ dump_block(IOVIRT_BLOCK *block)
           sbsa_print(AVS_PRINT_INFO, "\nITS Group:\n Num ITS:%d\n", (*map).id[0]);
           for(i = 0; i < block->data.its_count; i++)
               sbsa_print(AVS_PRINT_INFO, "%d ", (*map).id[i]);
-          sbsa_print(AVS_PRINT_INFO, "\n");
+          sbsa_print(AVS_PRINT_INFO, "\n", 0);
           return;
       case ACPI_IORT_NODE_NAMED_COMPONENT:
-          sbsa_print(AVS_PRINT_INFO, "\nNamed Component:\n Device Name:%s\n", block->data.name);
+          pr_info("\nNamed Component:\n Device Name:%s\n", block->data.name);
           break;
       case ACPI_IORT_NODE_PCI_ROOT_COMPLEX:
           sbsa_print(AVS_PRINT_INFO, "\nRoot Complex:\n PCI segment number:%d\n", block->data.rc.segment);
           break;
       case ACPI_IORT_NODE_SMMU:
       case ACPI_IORT_NODE_SMMU_V3:
-          sbsa_print(AVS_PRINT_INFO, "\nSMMU:\n Major Rev:%d\n Base Address:0x%lld\n",
+          pr_info("\nSMMU:\n Major Rev:%d\n Base Address:0x%lld\n",
           block->data.smmu.arch_major_rev, block->data.smmu.base);
       case IOVIRT_NODE_PMCG:
-          sbsa_print(AVS_PRINT_INFO, "\nPMCG:\n Base:0x%llx\n Overflow GSIV:0x%x\n Node Reference:0x%x\n",
+          pr_info("\nPMCG:\n Base:0x%llx\n Overflow GSIV:0x%x\n Node Reference:0x%x\n",
           block->data.pmcg.base, block->data.pmcg.overflow_gsiv, block->data.pmcg.node_ref);
 
         break;
   }
   sbsa_print(AVS_PRINT_INFO, "Number of ID Mappings:%d\n", block->num_data_map);
   for(i = 0; i < block->num_data_map; i++, map++) {
-      sbsa_print(AVS_PRINT_INFO, "\n input_base:0x%x\n id_count:0x%x\n output_base:0x%x\n output ref:0x%x\n",
+      pr_info("\n input_base:0x%x\n id_count:0x%x\n output_base:0x%x\n output ref:0x%x\n",
             (*map).map.input_base, (*map).map.id_count,
             (*map).map.output_base, (*map).map.output_ref);
   }
-  sbsa_print(AVS_PRINT_INFO, "\n");
+  sbsa_print(AVS_PRINT_INFO, "\n", 0);
 }
 
 static void
@@ -222,7 +222,7 @@ iovirt_add_block(struct acpi_table_iort *iort, struct acpi_iort_node *iort_node,
     NODE_DATA *data = &((*block)->data);
     void *node_data = &(iort_node->node_data[0]);
 
-    sbsa_print(AVS_PRINT_INFO, "IORT node offset:%lx, type: %d\n", (uint8_t*)iort_node - (uint8_t*)iort, iort_node->type);
+    pr_info("IORT node offset:%lx, type: %d\n", (uint8_t*)iort_node - (uint8_t*)iort, iort_node->type);
 
     memset(data, 0, sizeof(NODE_DATA));
 
@@ -273,7 +273,7 @@ iovirt_add_block(struct acpi_table_iort *iort, struct acpi_iort_node *iort_node,
             count = &iovirt_table->num_pmcgs;
             break;
         default:
-            sbsa_print(AVS_PRINT_ERR, "Invalid IORT node type\n");
+            sbsa_print(AVS_PRINT_ERR, "Invalid IORT node type\n", 0);
             return (uint32_t) -1;
     }
 
@@ -378,7 +378,7 @@ pal_iovirt_create_info_table(IOVIRT_INFO_TABLE *iovirt_table)
     /* Create iovirt block for each IORT node*/
     for (i = 0; i < iort->node_count; i++) {
         if (iort_node >= iort_end) {
-            sbsa_print(AVS_PRINT_ERR, "Bad IORT table \n");
+            sbsa_print(AVS_PRINT_ERR, "Bad IORT table \n", 0);
             return;
         }
         iovirt_add_block(iort, iort_node, iovirt_table, &next_block);

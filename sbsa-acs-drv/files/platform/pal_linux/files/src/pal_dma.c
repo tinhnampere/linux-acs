@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Copyright (C) 2016-2018 Arm Limited
+ * Copyright (C) 2016-2018, 2021 Arm Limited
  *
  * Author: Prasanth Pulla <prasanth.pulla@arm.com>
  *
@@ -55,7 +55,7 @@ pal_dma_mem_alloc(void **buffer, unsigned int length, void *port, unsigned int f
         if (flags == DMA_COHERENT) {
                 *buffer = dmam_alloc_coherent(((struct ata_port *)port)->dev, length, &mem_dma, GFP_KERNEL);
                 if (!(*buffer)) {
-                        sbsa_print(AVS_PRINT_ERR, "SBSA-DRV - Alloc failure %s \n", __func__);
+                        pr_err("SBSA-DRV - Alloc failure %s \n", __func__);
                         return -ENOMEM;
                 }
         } else {
@@ -209,7 +209,7 @@ decode_mem_attr_sh(uint64_t val, uint32_t *attr, uint32_t *sh)
     uint32_t attrindx = (val & PTE_ATTRINDX_MASK) >> 2;
     *attr = (mair >> (attrindx * 8)) & 0xff;
     *sh = (val & PTE_SHARED) >> 8;
-    sbsa_print(AVS_PRINT_INFO, "In decode_mem_attr_sh with attr=%x, sh=%x\n", *attr, *sh);
+    pr_info("In decode_mem_attr_sh with attr=%x, sh=%x\n", *attr, *sh);
 }
 
 int
