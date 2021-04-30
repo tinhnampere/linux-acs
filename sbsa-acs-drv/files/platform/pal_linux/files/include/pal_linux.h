@@ -79,3 +79,5 @@ int pal_smmu_check_dev_attach(struct device *dev);
                                  if(verbosity >= g_print_level) {  \
                                      pal_print(string, data);  \
                                  }
+
+#endif
