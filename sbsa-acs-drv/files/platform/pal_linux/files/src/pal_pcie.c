@@ -629,3 +629,20 @@ pal_pcie_is_cache_present(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t fn)
 {
   return 0;
 }
+
+/**
+    @brief   Gets RP support of transaction forwarding.
+
+    @param   bus        PCI bus address
+    @param   dev        PCI device address
+    @param   fn         PCI function number
+    @param   seg        PCI segment number
+
+    @return  0 if rp not involved in transaction forwarding
+             1 if rp is involved in transaction forwarding
+**/
+uint32_t
+pal_pcie_get_rp_transaction_frwd_support(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t fn)
+{
+  return 1;
+}
