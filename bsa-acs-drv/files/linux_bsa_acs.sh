@@ -13,8 +13,7 @@ fi
 
 if [ -z $CROSS_COMPILE ]
 then
-    echo "Error: set CROSS_COMPILE path"
-    exit 0
+    echo "Error: set CROSS_COMPILE path for cross compile"
 fi
 
 cd $BSA_ACS_PATH/platform/pal_linux/files
