@@ -28,9 +28,15 @@
 
 
 uint32_t
-pal_bsa_gic_imp()
+pal_target_is_dt()
 {
   return 0;
+}
+
+void
+pal_dump_dtb()
+{
+  return;
 }
 
 uint64_t

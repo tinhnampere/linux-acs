@@ -42,10 +42,10 @@
 #include "include/pal_linux.h"
 #include "include/bsa_pcie_enum.h"
 #include <linux/dma-mapping.h>
-#include <linux/sbsa-iommu.h>
+#include <linux/bsa-iommu.h>
 
 int
-sbsa_scsi_sata_get_dma_addr(struct ata_port *ap, dma_addr_t *dma_addr, unsigned int *dma_len);
+bsa_scsi_sata_get_dma_addr(struct ata_port *ap, dma_addr_t *dma_addr, unsigned int *dma_len);
 
 
 unsigned long long int
@@ -77,7 +77,7 @@ void
 pal_dma_scsi_get_dma_addr(void *port, void *dma_addr, unsigned int *dma_len)
 {
 
-	sbsa_scsi_sata_get_dma_addr(port, dma_addr, dma_len);
+	bsa_scsi_sata_get_dma_addr(port, dma_addr, dma_len);
 }
 
 void
@@ -128,7 +128,7 @@ pal_dma_create_info_table(DMA_INFO_TABLE *dma_info_table)
 					dma_info_table->info[j].host   = shost;
 					dma_info_table->info[j].port   = ap;
 					dma_info_table->info[j].target = sdev;
-					dma_info_table->info[j].flags  = sbsa_dev_get_dma_attr(shost->dma_dev);
+					dma_info_table->info[j].flags  = bsa_dev_get_dma_attr(shost->dma_dev);
 
 					/* if we did not get coherence attribute from ACPI/PCI, get it from FDT */
 					if (dma_info_table->info[j].flags == 0) {
@@ -203,7 +203,7 @@ pal_dma_start_to_device(void *dma_source_buf, unsigned int length,
 static int
 is_pte(uint64_t val)
 {
-    return !(val & 0x2);
+    return (val & 0x2);
 }
 
 /* Decode memory attribute and shareabilty from page table descriptor val*/
@@ -230,7 +230,7 @@ pal_dma_mem_get_attrs(void *buf, uint32_t *attr, uint32_t *sh)
     if(!swapper_pgd)
         return -1;
 
-    pgd = pgd_offset_pgd(swapper_pgd, (uint64_t)buf);
+    pgd = pgd_offset_k((uint64_t)buf);
     if(!pgd)
         return -1;
     kunmap(pg);
@@ -238,6 +238,7 @@ pal_dma_mem_get_attrs(void *buf, uint32_t *attr, uint32_t *sh)
     pud = pud_offset((p4d_t *) pgd, (uint64_t)buf);
     if(!pud)
         return -1;
+
     if(is_pte(pud_val(*pud))) {
          decode_mem_attr_sh(pud_val(*pud), attr, sh);
          return 0;

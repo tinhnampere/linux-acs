@@ -22,7 +22,7 @@
 #include <linux/acpi_iort.h>
 #include <linux/kernel.h>
 #include <linux/pci.h>
-#include <linux/sbsa-iommu.h>
+#include <linux/bsa-iommu.h>
 #include <linux/libata.h>
 
 #include "include/pal_linux.h"
@@ -47,7 +47,7 @@ pal_smmu_device_start_monitor_iova(void *port)
         return;
     }
 
-    sbsa_iommu_dev_start_monitor(((struct ata_port *)port)->dev);
+    bsa_iommu_dev_start_monitor(((struct ata_port *)port)->dev);
 }
 
 void
@@ -58,7 +58,7 @@ pal_smmu_device_stop_monitor_iova(void *port)
         return;
     }
 
-    sbsa_iommu_dev_stop_monitor(((struct ata_port *)port)->dev);
+    bsa_iommu_dev_stop_monitor(((struct ata_port *)port)->dev);
 }
 
 /**
@@ -86,7 +86,7 @@ pal_smmu_check_device_iova(void *port, unsigned long long dma_addr)
     /* Check if this address was used in the last few transactions of the IOMMU layer */
 
     do {
-        size = sbsa_iommu_iova_get_addr(index, &base);
+        size = bsa_iommu_iova_get_addr(index, &base);
         if (size) {
             if ((dma_addr >= base) && (dma_addr < (base + size))) {
                 return PAL_LINUX_SUCCESS;
@@ -99,7 +99,7 @@ pal_smmu_check_device_iova(void *port, unsigned long long dma_addr)
 
     /* Did not find it above - Check the active IOVA table entries now */
     do {
-        curr_node = sbsa_iommu_dma_get_iova(((struct ata_port *)port)->dev, &base, &size, &phys, curr_node);
+        curr_node = bsa_iommu_dma_get_iova(((struct ata_port *)port)->dev, &base, &size, &phys, curr_node);
         if (curr_node) {
             pr_info("Device IOVA entry is %llx size = %lx phys = %llx \n", base, size, phys);
             if ((dma_addr >= base) && (dma_addr < (base + size))) {
