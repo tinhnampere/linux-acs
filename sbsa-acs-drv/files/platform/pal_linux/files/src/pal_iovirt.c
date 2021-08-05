@@ -424,25 +424,62 @@ pal_iovirt_unique_rid_strid_map(uint64_t rc_block)
 }
 
 uint64_t
-pal_iovirt_get_rc_smmu_base(IOVIRT_INFO_TABLE *iovirt, uint32_t rc_seg_num)
+pal_iovirt_get_rc_smmu_base(IOVIRT_INFO_TABLE *iovirt, uint32_t rc_seg_num, uint32_t rid)
 {
-  uint32_t i;
+  uint32_t i, j;
   IOVIRT_BLOCK *block;
+  NODE_DATA_MAP *map;
+  uint32_t mapping_found;
+  uint32_t oref, sid, id = 0;
 
-  /* As per IORT acpi table, it is assumed that
-   * PCI segment numbers have a one-to-one mapping
-   * with root complexes. Each segment number can
-   * represent only one root complex.
-   */
+  /* Search for root complex block with same segment number, and in whose id */
+  /* mapping range 'rid' falls. Calculate the output id */
   block = &(iovirt->blocks[0]);
-  for(i = 0; i < iovirt->num_blocks; i++, block = IOVIRT_NEXT_BLOCK(block)) {
-    if (block->data.rc.segment == rc_seg_num) {
-      return block->data.rc.smmu_base;
-    }
+  mapping_found = 0;
+  for (i = 0; i < iovirt->num_blocks; i++, block = IOVIRT_NEXT_BLOCK(block))
+  {
+      if (block->type == IOVIRT_NODE_PCI_ROOT_COMPLEX
+          && block->data.rc.segment == rc_seg_num)
+      {
+          for (j = 0, map = &block->data_map[0]; j < block->num_data_map; j++, map++)
+          {
+              if(rid >= (*map).map.input_base
+                      && rid <= ((*map).map.input_base + (*map).map.id_count))
+              {
+                  id =  rid - (*map).map.input_base + (*map).map.output_base;
+                  oref = (*map).map.output_ref;
+                  mapping_found = 1;
+                  break;
+              }
+          }
+      }
+  }
+
+  if (!mapping_found) {
+      sbsa_print(AVS_PRINT_ERR,
+               "Requestor ID to Stream ID/Device ID mapping not found\n", 0);
+      return 0xFFFFFFFF;
+  }
+
+  block = (IOVIRT_BLOCK*)((uint8_t*)iovirt + oref);
+  if(block->type == IOVIRT_NODE_SMMU || block->type == IOVIRT_NODE_SMMU_V3)
+  {
+      sid = id;
+      id = 0;
+      for(i = 0, map = &block->data_map[0]; i < block->num_data_map; i++, map++)
+      {
+          if(sid >= (*map).map.input_base && sid <= ((*map).map.input_base +
+                                                    (*map).map.id_count))
+          {
+              sbsa_print(AVS_PRINT_DEBUG, " find RC block->data.smmu.base : %llx", block->data.smmu.base);
+              return block->data.smmu.base;
+          }
+      }
   }
 
   /* The Root Complex represented by rc_seg_num
    * is not behind any SMMU. Return NULL pointer
    */
+  sbsa_print(AVS_PRINT_DEBUG, "No SMMU found behind the RootComplex with segment :%x", rc_seg_num);
   return 0;
 }
