@@ -17,6 +17,7 @@
  *
  */
 
+#include <linux/module.h>
 #include <linux/slab.h>
 #include <linux/kernel.h>
 #include <linux/device.h>
@@ -72,3 +73,5 @@ uint32_t pal_smmu_device_configure(uint32_t stream_id, uint64_t source, uint64_t
 {
     return smmuv3_configure_testengine(stream_id, source, dest, size, secure);
 }
+
+MODULE_LICENSE("GPL");

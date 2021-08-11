@@ -48,6 +48,14 @@
 #define PLATFORM_WD_INTR_NUM 32
 
 /*
+ * Retrieving of memory region by specifying address ranges.
+ * this is about retrieving memory without handle value and
+ * specifying the offset field in the endpoint memory access descriptor.
+ * Supported values: 0(NOT_SUPPORTED), 1(SUPPORTED)
+ */
+#define PLATFORM_MEM_RETRIEVE_USING_ADDRESS_RANGES 0
+
+/*
  * Secure Partition manifest info.
  */
 
