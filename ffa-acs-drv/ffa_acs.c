@@ -41,13 +41,21 @@ static ssize_t ffa_proc_write(struct file *sp_file, const char __user *buf,
 
     return size;
 }
-
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5,12,0)
 struct file_operations ffa_fops = {
     .open = ffa_proc_open,
     .read = ffa_proc_read,
     .write = ffa_proc_write,
     .release = ffa_proc_release
 };
+#else
+static const struct proc_ops ffa_fops = {
+    .proc_open = ffa_proc_open,
+    .proc_read = ffa_proc_read,
+    .proc_write = ffa_proc_write,
+    .proc_release = ffa_proc_release
+};
+#endif
 
 /* Create proc entry for communication between user and kernel levels */
 static int __init init_ffa_acs(void)

@@ -1,0 +1,104 @@
+From 07b8c796e8fc8312dda59c803c8346536a40f238 Mon Sep 17 00:00:00 2001
+From: Mahesh Reddy Bireddy <mahred01@a074700.blr.arm.com>
+Date: Sun, 8 Aug 2021 11:25:38 +0530
+Subject: [PATCH] FFA ACS Linux v5.12
+
+Signed-off-by: Mahesh Bireddy <mahesh.reddybireddy@arm.com>
+---
+ drivers/irqchip/irq-gic-v3.c | 18 ++++++++++++++++++
+ include/linux/irqdomain.h    |  2 ++
+ kernel/irq/irqdomain.c       |  1 +
+ scripts/mod/modpost.c        |  4 ++--
+ 4 files changed, 23 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/irqchip/irq-gic-v3.c b/drivers/irqchip/irq-gic-v3.c
+index fea237838..141ad0ca0 100644
+--- a/drivers/irqchip/irq-gic-v3.c
++++ b/drivers/irqchip/irq-gic-v3.c
+@@ -106,6 +106,9 @@ static refcount_t *ppi_nmi_refs;
+ static struct gic_kvm_info gic_v3_kvm_info;
+ static DEFINE_PER_CPU(bool, has_rss);
+ 
++/* ACS GIC Patch */
++struct irq_domain *acs_irq_domain = NULL;
++
+ #define MPIDR_RS(mpidr)			(((mpidr) & 0xF0UL) >> 4)
+ #define gic_data_rdist()		(this_cpu_ptr(gic_data.rdists.rdist))
+ #define gic_data_rdist_rd_base()	(gic_data_rdist()->rd_base)
+@@ -185,6 +188,16 @@ static inline void __iomem *gic_dist_base(struct irq_data *d)
+ 	}
+ }
+ 
++struct irq_domain* acs_get_irq_domain(void)
++{
++   if (acs_irq_domain)
++      return acs_irq_domain;
++
++   return NULL;
++}
++EXPORT_SYMBOL(acs_get_irq_domain);
++
++
+ static void gic_do_wait_for_rwp(void __iomem *base)
+ {
+ 	u32 count = 1000000;	/* 1s! */
+@@ -1452,6 +1465,11 @@ static int gic_irq_domain_alloc(struct irq_domain *domain, unsigned int virq,
+ 			return ret;
+ 	}
+ 
++    /* ACS GIC Patch */
++    if (domain) {
++       acs_irq_domain = domain;
++    }
++
+ 	return 0;
+ }
+ 
+diff --git a/include/linux/irqdomain.h b/include/linux/irqdomain.h
+index 33cacc8af..e8c617e02 100644
+--- a/include/linux/irqdomain.h
++++ b/include/linux/irqdomain.h
+@@ -614,4 +614,6 @@ static inline bool irq_domain_check_msi_remap(void)
+ }
+ #endif /* !CONFIG_IRQ_DOMAIN */
+ 
++/* ACS GIC Patch */
++struct irq_domain* acs_get_irq_domain(void);
+ #endif /* _LINUX_IRQDOMAIN_H */
+diff --git a/kernel/irq/irqdomain.c b/kernel/irq/irqdomain.c
+index d10ab1d68..4ef5af40b 100644
+--- a/kernel/irq/irqdomain.c
++++ b/kernel/irq/irqdomain.c
+@@ -1497,6 +1497,7 @@ int __irq_domain_alloc_irqs(struct irq_domain *domain, int irq_base,
+ 	irq_free_descs(virq, nr_irqs);
+ 	return ret;
+ }
++EXPORT_SYMBOL(__irq_domain_alloc_irqs);
+ 
+ /* The irq_data was moved, fix the revmap to refer to the new location */
+ static void irq_domain_fix_revmap(struct irq_data *d)
+diff --git a/scripts/mod/modpost.c b/scripts/mod/modpost.c
+index 10c3fba26..17f4443db 100644
+--- a/scripts/mod/modpost.c
++++ b/scripts/mod/modpost.c
+@@ -1996,7 +1996,7 @@ static void read_symbols(const char *modname)
+ 	if (!mod->is_vmlinux) {
+ 		license = get_modinfo(&info, "license");
+ 		if (!license)
+-			error("missing MODULE_LICENSE() in %s\n", modname);
++			warn("missing MODULE_LICENSE() in %s\n", modname);
+ 		while (license) {
+ 			if (license_is_gpl_compatible(license))
+ 				mod->gpl_compatible = 1;
+@@ -2142,7 +2142,7 @@ static void check_exports(struct module *mod)
+ 		exp = find_symbol(s->name);
+ 		if (!exp || exp->module == mod) {
+ 			if (have_vmlinux && !s->weak)
+-				modpost_log(warn_unresolved ? LOG_WARN : LOG_ERROR,
++				modpost_log(LOG_WARN,
+ 					    "\"%s\" [%s.ko] undefined!\n",
+ 					    s->name, mod->name);
+ 			continue;
+-- 
+2.17.1
+
