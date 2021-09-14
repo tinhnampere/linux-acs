@@ -643,11 +643,13 @@ uint32_t pal_bsa_pcie_enumerate(void)
 /**
   @brief  Placeholder To check if a PCIe device has an Address
           translation cache or not.
+  @return  1 - ATC not supported 0 - ATC supported
+
  **/
 uint32_t
 pal_pcie_is_cache_present(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t fn)
 {
-  return 0;
+  return 1;
 }
 
 /**
