@@ -82,7 +82,7 @@ unsigned int
 pal_pe_install_esr(unsigned int ExceptionType,  void (*esr)(unsigned long long, void *))
 {
 
-  return 0;
+  return 1;
 }
 
 void

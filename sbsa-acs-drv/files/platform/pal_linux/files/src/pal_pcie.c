@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Copyright (C) 2016-2020 Arm Limited
+ * Copyright (C) 2016-2021 Arm Limited
  *
  * Author: Prasanth Pulla <prasanth.pulla@arm.com>
  *         Daniil Egranov <daniil.egranov@arm.com>
@@ -578,27 +578,6 @@ pal_pcie_dev_p2p_support(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t fn)
   return 1;
 }
 
-/**
-  @brief   This API checks the PCIe device multifunction support
-           1. Caller       -  Test Suite
-  @param   bdf      - PCIe BUS/Device/Function
-  @return  1 - Multifunction feature not supported 0 - Multifunction feature supported
-**/
-uint32_t
-pal_pcie_multifunction_support(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t fn)
-{
-  struct pci_dev *pdev;
-
-  pdev = pci_get_domain_bus_and_slot(seg, bus, PCI_DEVFN(dev, fn));
-  if(pdev == NULL)
-      return 1;
-
-  if (!pdev->multifunction)
-      return 1;
-
-  return 0;
-}
-
 uint32_t pal_pcie_io_read_cfg(uint32_t bdf, uint32_t offset, uint32_t *data)
 {
     return 0;
@@ -656,6 +635,17 @@ pal_pcie_get_rp_transaction_frwd_support(uint32_t seg, uint32_t bus, uint32_t de
 **/
 uint32_t
 pal_pcie_is_onchip_peripheral(uint32_t bdf)
+{
+  return 0;
+}
+
+/**
+  @brief  Checks the discovered PCIe hierarchy is matching with the
+          topology described in info table.
+  @return Returns 0 if device entries matches , 1 if there is mismatch.
+**/
+uint32_t
+pal_pcie_check_device_list()
 {
   return 0;
 }

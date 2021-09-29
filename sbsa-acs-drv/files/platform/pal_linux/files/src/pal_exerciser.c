@@ -114,3 +114,14 @@ uint32_t pal_exerciser_get_data(EXERCISER_DATA_TYPE type, exerciser_data_t *data
 {
 	return 0;
 }
+
+/**
+  @brief  This API returns if the device is a exerciser
+  @param  bdf - Bus/Device/Function
+  @return 1 - true 0 - false
+**/
+uint32_t
+pal_is_bdf_exerciser(uint32_t bdf)
+{
+  return 0;
+}

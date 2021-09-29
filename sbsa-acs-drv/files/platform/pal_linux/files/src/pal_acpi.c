@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Copyright (C) 2016-2018 Arm Limited
+ * Copyright (C) 2016-2018, 2021 Arm Limited
  *
  * Author: Prasanth Pulla <prasanth.pulla@arm.com>
  *
@@ -58,4 +58,10 @@ pal_get_iort_ptr(void)
     status = acpi_get_table(ACPI_SIG_IORT, 0, &iort_table);
 
     return (uint64_t)iort_table;
+}
+
+uint32_t
+pal_target_is_bm()
+{
+  return 0;
 }
