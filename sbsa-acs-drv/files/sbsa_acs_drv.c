@@ -19,6 +19,7 @@
  *
  */
 
+#include <linux/version.h>
 #include "sbsa_acs_drv.h"
 
 #include "val/include/val_interface.h"
@@ -183,6 +184,20 @@ ssize_t sbsa_msg_proc_read(struct file *sp_file,char __user *buf, size_t size, l
     return length;
 }
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(5,6,0)
+const struct proc_ops sbsa_msg_fops = {
+    .proc_open = sbsa_proc_open,
+    .proc_read = sbsa_msg_proc_read,
+    .proc_release = sbsa_proc_release
+};
+
+static const struct proc_ops fops = {
+    .proc_open = sbsa_proc_open,
+    .proc_read = sbsa_proc_read,
+    .proc_write = sbsa_proc_write,
+    .proc_release = sbsa_proc_release
+};
+#else
 struct file_operations sbsa_msg_fops = {
     .open = sbsa_proc_open,
     .read = sbsa_msg_proc_read,
@@ -195,6 +210,7 @@ struct file_operations fops = {
     .write = sbsa_proc_write,
     .release = sbsa_proc_release
 };
+#endif
 
 static int __init init_sbsaproc (void)
 {

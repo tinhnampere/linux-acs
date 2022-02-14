@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Copyright (C) 2016-2021 Arm Limited
+ * Copyright (C) 2016-2022 Arm Limited
  *
  * Author: Prasanth Pulla <prasanth.pulla@arm.com>
  *
@@ -415,4 +415,19 @@ void *pal_mem_alloc_pages(uint32_t num_pages)
 **/
 void pal_mem_free_pages(void *page_base, uint32_t num_pages)
 {
+}
+
+/**
+ * @brief  Allocates requested buffer size in bytes with zeros in a contiguous memory
+ *         and returns the base address of the range.
+ *
+ * @param  Size         allocation size in bytes
+ * @retval if SUCCESS   pointer to allocated memory
+ * @retval if FAILURE   NULL
+ */
+void *
+pal_mem_calloc(unsigned int num, unsigned int Size)
+{
+
+  return kcalloc(num, Size, GFP_KERNEL);
 }

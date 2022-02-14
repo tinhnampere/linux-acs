@@ -61,6 +61,7 @@ dump_block(IOVIRT_BLOCK *block)
       case ACPI_IORT_NODE_SMMU_V3:
           pr_info("\nSMMU:\n Major Rev:%d\n Base Address:0x%lld\n",
           block->data.smmu.arch_major_rev, block->data.smmu.base);
+          break;
       case IOVIRT_NODE_PMCG:
           pr_info("\nPMCG:\n Base:0x%llx\n Overflow GSIV:0x%x\n Node Reference:0x%x\n",
           block->data.pmcg.base, block->data.pmcg.overflow_gsiv, block->data.pmcg.node_ref);

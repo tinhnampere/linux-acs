@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Copyright (C) 2016-2018 Arm Limited
+ * Copyright (C) 2016-2018, 2022 Arm Limited
  *
  * Author: Prasanth Pulla <prasanth.pulla@arm.com>
  *
@@ -154,4 +154,34 @@ void pal_pci_write_config_byte(uint32_t bdf, uint8_t offset, uint8_t val)
   pdev = pci_get_domain_bus_and_slot(seg, bus, PCI_DEVFN(dev, fn));
 
   pci_write_config_byte(pdev, offset, val);
+}
+
+/**
+  @brief  This API is checks if the bdf obtained
+          is valid or not
+
+  @param  bdf
+  @return 0 if bdf is valid else 1
+**/
+
+unsigned int
+pal_pcie_check_device_valid(unsigned int bdf)
+{
+  uint32_t seg;
+  uint32_t bus;
+  uint32_t dev;
+  uint32_t fn;
+  struct pci_dev *pdev;
+
+  seg  = PCIE_EXTRACT_BDF_SEG (bdf);
+  bus = PCIE_EXTRACT_BDF_BUS(bdf);
+  dev = PCIE_EXTRACT_BDF_DEV(bdf);
+  fn = PCIE_EXTRACT_BDF_FUNC(bdf);
+  pdev = pci_get_domain_bus_and_slot(seg, bus, PCI_DEVFN(dev, fn));
+
+  if (pdev)
+      return 0;
+
+  return 1;
+
 }

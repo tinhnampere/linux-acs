@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Copyright (C) 2016-2021 Arm Limited
+ * Copyright (C) 2016-2022 Arm Limited
  *
  * Author: Prasanth Pulla <prasanth.pulla@arm.com>
  *         Daniil Egranov <daniil.egranov@arm.com>
@@ -26,6 +26,7 @@
 #include <linux/pci.h>
 #include <linux/msi.h>
 #include <linux/acpi.h>
+#include <linux/version.h>
 #include <linux/pci-acpi.h>
 #include <linux/interrupt.h>
 
@@ -371,12 +372,17 @@ uint32_t pal_pcie_scan_bridge_devices_and_check_memtype(uint32_t seg, uint32_t b
 uint32_t
 pal_pcie_get_root_port_bdf(uint32_t *seg, uint32_t *bus, uint32_t *dev, uint32_t *func)
 {
-  struct pci_dev *pdev, *root_port;
+  struct pci_dev *pdev, *root_port = NULL;
   pdev = pci_get_domain_bus_and_slot(*seg, *bus, PCI_DEVFN(*dev, *func));
   if(pdev->bus->self == NULL)
     return 1;
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(5,7,0)
+  root_port = pcie_find_root_port(pdev);
+#else
   root_port = pci_find_pcie_root_port(pdev);
+#endif
+
   if(root_port == NULL)
     return 2;
 

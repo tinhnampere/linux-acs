@@ -25,6 +25,7 @@
 #include <linux/string.h>
 #include <linux/mm.h>
 #include <linux/init.h>
+#include <linux/version.h>
 #include <linux/completion.h>
 #include <linux/transport_class.h>
 #include <linux/libata.h>
@@ -41,10 +42,10 @@
 #include "include/pal_linux.h"
 #include "include/sbsa_pcie_enum.h"
 #include <linux/dma-mapping.h>
-#include <linux/sbsa-iommu.h>
+#include <linux/bsa-iommu.h>
 
 int
-sbsa_scsi_sata_get_dma_addr(struct ata_port *ap, dma_addr_t *dma_addr, unsigned int *dma_len);
+bsa_scsi_sata_get_dma_addr(struct ata_port *ap, dma_addr_t *dma_addr, unsigned int *dma_len);
 
 
 unsigned long long int
@@ -76,7 +77,7 @@ void
 pal_dma_scsi_get_dma_addr(void *port, void *dma_addr, unsigned int *dma_len)
 {
 
-	sbsa_scsi_sata_get_dma_addr(port, dma_addr, dma_len);
+	bsa_scsi_sata_get_dma_addr(port, dma_addr, dma_len);
 }
 
 void
@@ -127,11 +128,15 @@ pal_dma_create_info_table(DMA_INFO_TABLE *dma_info_table)
 					dma_info_table->info[j].host   = shost;
 					dma_info_table->info[j].port   = ap;
 					dma_info_table->info[j].target = sdev;
-					dma_info_table->info[j].flags  = sbsa_dev_get_dma_attr(shost->dma_dev);
+					dma_info_table->info[j].flags  = bsa_dev_get_dma_attr(shost->dma_dev);
 
 					/* if we did not get coherence attribute from ACPI/PCI, get it from FDT */
 					if (dma_info_table->info[j].flags == 0) {
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4,19,0)
+						dma_info_table->info[j].flags = shost->dma_dev->dma_coherent;
+#else
 						dma_info_table->info[j].flags = shost->dma_dev->archdata.dma_coherent;
+#endif
 					}
 					if (pal_smmu_check_dev_attach(ap->dev))
 						dma_info_table->info[j].flags |= IOMMU_ATTACHED;
@@ -215,44 +220,38 @@ decode_mem_attr_sh(uint64_t val, uint32_t *attr, uint32_t *sh)
 int
 pal_dma_mem_get_attrs(void *buf, uint32_t *attr, uint32_t *sh)
 {
-    pud_t *pud;
-    pmd_t *pmd;
-    pte_t *pte;
-    pgd_t *pgd, *swapper_pgd;
-    struct page *pg = phys_to_page(read_sysreg(ttbr1_el1));
+    pud_t *pudp, pud;
+    pmd_t *pmdp, pmd;
+    pte_t *ptep, pte;
+    pgd_t *pgdp;
+    p4d_t *p4dp;
 
-    swapper_pgd = (pgd_t*) kmap(pg);
-    if(!swapper_pgd)
+    pgdp = pgd_offset_k((uint64_t)buf);
+    if (pgd_none(READ_ONCE(*pgdp)))
         return -1;
 
-    pgd = pgd_offset_raw(swapper_pgd, (uint64_t)buf);
-    if(!pgd)
-        return -1;
-    kunmap(pg);
-
-    pud = pud_offset(pgd, (uint64_t)buf);
-    if(!pud)
-        return -1;
-    if(is_pte(pud_val(*pud))) {
-         decode_mem_attr_sh(pud_val(*pud), attr, sh);
-         return 0;
-    }
-
-    pmd = pmd_offset(pud, (uint64_t)buf);
-    if(!pmd)
-        return -1;
-    if(is_pte(pmd_val(*pmd))) {
-         decode_mem_attr_sh(pmd_val(*pmd), attr, sh);
-         return 0;
-    }
-
-    pte = pte_offset_kernel(pmd, (uint64_t)buf);
-    if(!pte)
+    p4dp = p4d_offset(pgdp, (uint64_t)buf);
+    if (p4d_none(*p4dp))
         return -1;
 
-    if(is_pte(pte_val(*pte))) {
-        decode_mem_attr_sh(pte_val(*pte), attr, sh);
-        return 0;
+    pudp = pud_offset(p4dp, (uint64_t)buf);
+    pud = READ_ONCE(*pudp);
+    if (pud_none(pud))
+        return -1;
+
+    pmdp = pmd_offset(pudp, (uint64_t)buf);
+    pmd = READ_ONCE(*pmdp);
+    if (pmd_none(pmd))
+        return -1;
+
+    ptep = pte_offset_kernel(pmdp, (uint64_t)buf);
+    pte = READ_ONCE(*ptep);
+
+    if(pte_valid(pte)) {
+      if(is_pte(pte_val(pte))) {
+          decode_mem_attr_sh(pte_val(pte), attr, sh);
+          return 0;
+      }
     }
 
     return -1;
