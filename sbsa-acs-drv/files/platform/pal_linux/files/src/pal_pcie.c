@@ -655,3 +655,16 @@ pal_pcie_check_device_list()
 {
   return 0;
 }
+
+/**
+  @brief  Placeholder to return the memory offset
+          This offset is platform-specific. It needs to
+          be modified according to the requirement.
+
+**/
+uint32_t
+pal_pcie_mem_get_offset()
+{
+
+  return 0;
+}
