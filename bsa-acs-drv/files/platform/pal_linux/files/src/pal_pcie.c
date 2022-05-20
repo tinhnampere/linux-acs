@@ -348,7 +348,7 @@ uint32_t pal_pcie_scan_bridge_devices_and_check_memtype(uint32_t seg, uint32_t b
 
     pdev = pci_get_domain_bus_and_slot(seg, bus, PCI_DEVFN(dev, fn));
 
-    list_for_each_entry(child_dev, &pdev->bus->devices, bus_list) {
+    list_for_each_entry(child_dev, &pdev->subordinate->devices, bus_list) {
         if (child_dev) {
             pci_read_config_word(child_dev, 0x10, &data);
             if (data) {
