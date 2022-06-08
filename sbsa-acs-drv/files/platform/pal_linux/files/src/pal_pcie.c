@@ -663,7 +663,7 @@ pal_pcie_check_device_list()
 
 **/
 uint32_t
-pal_pcie_mem_get_offset()
+pal_pcie_mem_get_offset(uint32_t type)
 {
 
   return 0;

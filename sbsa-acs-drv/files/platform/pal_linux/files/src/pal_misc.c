@@ -431,3 +431,32 @@ pal_mem_calloc(unsigned int num, unsigned int Size)
 
   return kcalloc(num, Size, GFP_KERNEL);
 }
+
+/**
+  @brief  Allocates memory with the given alignement.
+
+  @param  Alignment   Specifies the alignment.
+  @param  Size        Requested memory allocation size.
+
+  @return Pointer to the allocated memory with requested alignment.
+**/
+void *
+pal_aligned_alloc(uint32_t alignment, uint32_t size)
+{
+  void *Mem = NULL;
+  void *Aligned_Ptr = NULL;
+
+  /* Generate mask for the Alignment parameter*/
+  uint64_t Mask = ~(uint64_t)(alignment - 1);
+
+  /* Allocate memory with extra bytes, so we can return an aligned address*/
+  Mem = (void *)pal_mem_alloc(size + alignment);
+
+  if( Mem == NULL)
+    return 0;
+
+  /* Add the alignment to allocated memory address and align it to target alignment*/
+  Aligned_Ptr = (void *)(((uint64_t) Mem + alignment-1) & Mask);
+
+  return Aligned_Ptr;
+}
