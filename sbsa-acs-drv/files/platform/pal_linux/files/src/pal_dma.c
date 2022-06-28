@@ -203,7 +203,7 @@ pal_dma_start_to_device(void *dma_source_buf, unsigned int length,
 static int
 is_pte(uint64_t val)
 {
-    return !(val & 0x2);
+    return (val & 0x2);
 }
 
 /* Decode memory attribute and shareabilty from page table descriptor val*/
@@ -220,38 +220,44 @@ decode_mem_attr_sh(uint64_t val, uint32_t *attr, uint32_t *sh)
 int
 pal_dma_mem_get_attrs(void *buf, uint32_t *attr, uint32_t *sh)
 {
-    pud_t *pudp, pud;
-    pmd_t *pmdp, pmd;
-    pte_t *ptep, pte;
-    pgd_t *pgdp;
-    p4d_t *p4dp;
+    pud_t *pud = NULL;
+    pmd_t *pmd;
+    pte_t *pte;
+    pgd_t *pgd;
 
-    pgdp = pgd_offset_k((uint64_t)buf);
-    if (pgd_none(READ_ONCE(*pgdp)))
+    pgd = pgd_offset_k((uint64_t)buf);
+    if(!pgd)
         return -1;
+    sbsa_print(AVS_PRINT_DEBUG, "DEBUG : pgd from pgd_offset_k: 0x%llx\n", (uint64_t)(pgd->pgd));
 
-    p4dp = p4d_offset(pgdp, (uint64_t)buf);
-    if (p4d_none(*p4dp))
+    pud = pud_offset((p4d_t *) pgd, (uint64_t)buf);
+    if(!pud)
         return -1;
+    sbsa_print(AVS_PRINT_DEBUG, "DEBUG : pud from pud_offset: 0x%llx\n", (uint64_t)(pud_val(*pud)));
 
-    pudp = pud_offset(p4dp, (uint64_t)buf);
-    pud = READ_ONCE(*pudp);
-    if (pud_none(pud))
+    if(!(pud_val(*pud) & 0x2)) {
+         decode_mem_attr_sh(pud_val(*pud), attr, sh);
+         return 0;
+    }
+
+    pmd = pmd_offset(pud, (uint64_t)buf);
+    if(!pmd)
         return -1;
+    sbsa_print(AVS_PRINT_DEBUG, "DEBUG : pmd from pmd_offset: 0x%llx\n", (uint64_t)(pmd_val(*pmd)));
 
-    pmdp = pmd_offset(pudp, (uint64_t)buf);
-    pmd = READ_ONCE(*pmdp);
-    if (pmd_none(pmd))
+    if(!(pmd_val(*pmd) & 0x2)) {
+         decode_mem_attr_sh(pmd_val(*pmd), attr, sh);
+         return 0;
+    }
+
+    pte = pte_offset_kernel(pmd, (uint64_t)buf);
+    if(!pte)
         return -1;
+    sbsa_print(AVS_PRINT_DEBUG, "DEBUG : pte from pte_offset_kernel: 0x%llx\n", (uint64_t)(pte_val(*pte)));
 
-    ptep = pte_offset_kernel(pmdp, (uint64_t)buf);
-    pte = READ_ONCE(*ptep);
-
-    if(pte_valid(pte)) {
-      if(is_pte(pte_val(pte))) {
-          decode_mem_attr_sh(pte_val(pte), attr, sh);
-          return 0;
-      }
+    if(is_pte(pte_val(*pte))) {
+        decode_mem_attr_sh(pte_val(*pte), attr, sh);
+        return 0;
     }
 
     return -1;

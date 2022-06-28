@@ -223,23 +223,19 @@ pal_dma_mem_get_attrs(void *buf, uint32_t *attr, uint32_t *sh)
     pud_t *pud = NULL;
     pmd_t *pmd;
     pte_t *pte;
-    pgd_t *pgd, *swapper_pgd;
-    struct page *pg = phys_to_page(read_sysreg(ttbr1_el1));
-
-    swapper_pgd = (pgd_t*) kmap(pg);
-    if(!swapper_pgd)
-        return -1;
+    pgd_t *pgd;
 
     pgd = pgd_offset_k((uint64_t)buf);
     if(!pgd)
         return -1;
-    kunmap(pg);
+    bsa_print(ACS_PRINT_DEBUG, "DEBUG : pgd from pgd_offset_k: 0x%llx\n", (uint64_t)(pgd->pgd));
 
     pud = pud_offset((p4d_t *) pgd, (uint64_t)buf);
     if(!pud)
         return -1;
+    bsa_print(ACS_PRINT_DEBUG, "DEBUG : pud from pud_offset: 0x%llx\n", (uint64_t)(pud_val(*pud)));
 
-    if(is_pte(pud_val(*pud))) {
+    if(!(pud_val(*pud) & 0x2)) {
          decode_mem_attr_sh(pud_val(*pud), attr, sh);
          return 0;
     }
@@ -247,7 +243,9 @@ pal_dma_mem_get_attrs(void *buf, uint32_t *attr, uint32_t *sh)
     pmd = pmd_offset(pud, (uint64_t)buf);
     if(!pmd)
         return -1;
-    if(is_pte(pmd_val(*pmd))) {
+    bsa_print(ACS_PRINT_DEBUG, "DEBUG : pmd from pmd_offset: 0x%llx\n", (uint64_t)(pmd_val(*pmd)));
+
+    if(!(pmd_val(*pmd) & 0x2)) {
          decode_mem_attr_sh(pmd_val(*pmd), attr, sh);
          return 0;
     }
@@ -255,6 +253,7 @@ pal_dma_mem_get_attrs(void *buf, uint32_t *attr, uint32_t *sh)
     pte = pte_offset_kernel(pmd, (uint64_t)buf);
     if(!pte)
         return -1;
+    bsa_print(ACS_PRINT_DEBUG, "DEBUG : pte from pte_offset_kernel: 0x%llx\n", (uint64_t)(pte_val(*pte)));
 
     if(is_pte(pte_val(*pte))) {
         decode_mem_attr_sh(pte_val(*pte), attr, sh);
