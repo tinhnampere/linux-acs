@@ -8,7 +8,7 @@ This document provides information on executing [ff-a-acs tests](https://github.
 - Maintained by [ff-a-acs](https://github.com/ARM-software/ff-a-acs.git) manitainers
 
 ## Prerequisites
-- Linux kernel source version 5.0 or 5.12
+- Linux kernel source version 5.0
 - Linaro GCC tool chain 5.3 or above
 - Build environment for AArch64 Linux kernel
 
@@ -17,13 +17,12 @@ Follow the below steps to create kernel module for VM1 endpoint code:
 
 * Checkout the sources:
 1. mkdir <local_dir> ; cd <local_dir>
-1. git clone https://git.gitlab.arm.com/linux-arm/linux-acs.git
-2. git clone https://github.com/ARM-software/ff-a-acs.git
+2. git clone https://git.gitlab.arm.com/linux-arm/linux-acs.git
+3. git clone https://github.com/ARM-software/ff-a-acs.git
 
 * Porting steps for Linux kernel
 1. Apply the <local_dir>/linux-acs/ffa-acs-drv/kernel/0001-FFA-ACS-Linux-v5.0.patch to your kernel-v5.0 source tree.
-2. Apply the <local_dir>/linux-acs/ffa-acs-drv/kernel/0001-FFA-ACS-Linux-v5.12.patch to your kernel-v5.12 source tree.
-3. Build the kernel.
+2. Build the kernel.
 
 * Build steps for FFA ACS kernel module
 1. cd <local_dir>/linux-acs/ffa-acs-drv
@@ -40,6 +39,9 @@ Follow the below steps to create kernel module for VM1 endpoint code:
    3. PLATFORM_SPMC_EL=<el_num>: EL number where the target SPMC component runs. Supported values are 1 and 2. The default value is 2.<br />
    4. PLATFORM_SP_EL=<el_num>: EL number where the test secure endpoints are expected to run. Supported values are 0 and 1. The default value is 1.<br />
    5. PLATFORM_NS_HYPERVISOR_PRESENT=<0|1>: Does the system support the non-secure hypervisor component? 1 for yes, 0 for no. The default vaule is 0. System is expected to intergrate and load all the three of nonsecure test endpoints if the value is set to 1. Otherwise needs to use single non-secure test endpoint(vm1) which would act as NS OS kernel.<br />
+   6. PLATFORM_FFA_V_1_0=<0|1>: It runs only tests that are supported by the Arm FF-A v1.0 specification. The default value is 0.<br />
+   7. PLATFORM_FFA_V_1_1=<0|1>: It only tests the Arm FF-A v1.1 specifications as updates to Arm FF-A v1.0. The default value is 0.<br />
+   8. PLATFORM_FFA_V_ALL=<0|1>: It runs all tests that are supported by the Arm FF-A v1.1 specification. The default value is 1. <br />
 
 
 ## Build the Linux Application

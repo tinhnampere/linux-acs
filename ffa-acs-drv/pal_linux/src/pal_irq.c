@@ -43,17 +43,17 @@ int pal_irq_handler_dispatcher(void)
     return 0;
 }
 
-void pal_irq_enable(int irq_num, uint8_t irq_priority)
+void pal_irq_enable(unsigned int irq_num, uint8_t irq_priority)
 {
     return;
 }
 
-void pal_irq_disable(int irq_num)
+void pal_irq_disable(unsigned int irq_num)
 {
     return;
 }
 
-int pal_irq_register_handler(int irq_num, void *irq_handler)
+int pal_irq_register_handler(unsigned int irq_num, handler_irq_t irq_handler)
 {
     uint64_t flags = 0;
     int32_t ret = 0;
@@ -110,7 +110,7 @@ error:
     return ret;
 }
 
-int pal_irq_unregister_handler(int irq_num)
+int pal_irq_unregister_handler(unsigned int irq_num)
 {
     uint32_t virq;
     struct irq_domain *domain = NULL;
@@ -123,7 +123,7 @@ int pal_irq_unregister_handler(int irq_num)
     return PAL_SUCCESS;
 }
 
-void pal_send_sgi(int sgi_id, unsigned int core_pos)
+void pal_send_sgi(unsigned int sgi_id, unsigned int core_pos)
 {
     return;
 }

@@ -68,6 +68,73 @@ uint32_t pal_watchdog_disable(void)
     return PAL_SUCCESS;
 }
 
+uint32_t pal_twdog_enable(uint32_t ms)
+{
+    /* Empty api - not in use */
+    (void)ms;
+    return PAL_SUCCESS;
+}
+
+uint32_t pal_twdog_disable(void)
+{
+    /* Empty api - not in use */
+    return PAL_SUCCESS;
+}
+
+void pal_twdog_intr_enable(void)
+{
+    /* Empty api - not in use */
+    return;
+}
+
+void pal_twdog_intr_disable(void)
+{
+    /* Empty api - not in use */
+    return;
+}
+
+void pal_ns_wdog_enable(uint32_t ms)
+{
+    pal_mmio_write32(PLATFORM_NS_WD_BASE + 0x8, ms);
+    pal_mmio_write32(PLATFORM_NS_WD_BASE, 1);
+}
+
+void pal_ns_wdog_disable(void)
+{
+    pal_mmio_write32(PLATFORM_NS_WD_BASE, 0);
+}
+
+void pal_ns_wdog_intr_enable(void)
+{
+    /* Empty api - not in use */
+    return;
+}
+
+void pal_ns_wdog_intr_disable(void)
+{
+    /* Empty api - not in use */
+    return;
+}
+
+uint64_t pal_sleep(uint32_t ms)
+{
+    /* Empty api - not in use */
+    (void)ms;
+    return PAL_SUCCESS;
+}
+
+void pal_secure_intr_enable(uint32_t int_id, enum interrupt_pin pin)
+{
+    /* Empty api - not in use */
+    return;
+}
+
+void pal_secure_intr_disable(uint32_t int_id, enum interrupt_pin pin)
+{
+    /* Empty api - not in use */
+    return;
+}
+
 uint32_t pal_smmu_device_configure(uint32_t stream_id, uint64_t source, uint64_t dest,
                                      uint64_t size, bool secure)
 {

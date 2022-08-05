@@ -1,15 +1,61 @@
-From 104ddfd8a9847a6222da6acff47a400dedaa6d15 Mon Sep 17 00:00:00 2001
+From 15344cc288ace34d29e4b3a82a3e4c29ebbf3720 Mon Sep 17 00:00:00 2001
 From: Mahesh Bireddy <mahesh.reddybireddy@arm.com>
-Date: Wed, 17 Mar 2021 13:10:07 +0530
+Date: Fri, 29 Jul 2022 17:37:31 +0800
 Subject: [PATCH] FFA ACS Linux v5.0
 
 Signed-off-by: Mahesh Bireddy <mahesh.reddybireddy@arm.com>
 ---
+ arch/arm64/kernel/smp.c      | 13 ++++++++++++-
  drivers/irqchip/irq-gic-v3.c | 17 +++++++++++++++++
- include/linux/irqdomain.h    |  2 ++
+ include/linux/irqdomain.h    |  3 +++
  kernel/irq/irqdomain.c       |  1 +
- 3 files changed, 20 insertions(+)
+ 4 files changed, 33 insertions(+), 1 deletion(-)
 
+diff --git a/arch/arm64/kernel/smp.c b/arch/arm64/kernel/smp.c
+index 1598d6f72..40aff3581 100644
+--- a/arch/arm64/kernel/smp.c
++++ b/arch/arm64/kernel/smp.c
+@@ -63,6 +63,7 @@
+ #define CREATE_TRACE_POINTS
+ #include <trace/events/ipi.h>
+ 
++#define FFA_ACS_SRI_INTERRUPT 8
+ DEFINE_PER_CPU_READ_MOSTLY(int, cpu_number);
+ EXPORT_PER_CPU_SYMBOL(cpu_number);
+ 
+@@ -82,7 +83,8 @@ enum ipi_msg_type {
+ 	IPI_CPU_CRASH_STOP,
+ 	IPI_TIMER,
+ 	IPI_IRQ_WORK,
+-	IPI_WAKEUP
++	IPI_WAKEUP,
++	IPI_FFA_SRI = FFA_ACS_SRI_INTERRUPT
+ };
+ 
+ #ifdef CONFIG_HOTPLUG_CPU
+@@ -94,6 +96,11 @@ static inline int op_cpu_kill(unsigned int cpu)
+ }
+ #endif
+ 
++/* ACS FFA patch */
++static void acs_ffa_sri_handler(void)
++{
++	return;
++}
+ 
+ /*
+  * Boot a secondary CPU, and assign it the specified idle task.
+@@ -889,6 +896,10 @@ void handle_IPI(int ipinr, struct pt_regs *regs)
+ 		}
+ 		break;
+ 
++	case IPI_FFA_SRI:
++		acs_ffa_sri_handler();
++		break;
++
+ #ifdef CONFIG_GENERIC_CLOCKEVENTS_BROADCAST
+ 	case IPI_TIMER:
+ 		irq_enter();
 diff --git a/drivers/irqchip/irq-gic-v3.c b/drivers/irqchip/irq-gic-v3.c
 index 0868a9d81..2cbd78adf 100644
 --- a/drivers/irqchip/irq-gic-v3.c
@@ -53,15 +99,16 @@ index 0868a9d81..2cbd78adf 100644
  }
  
 diff --git a/include/linux/irqdomain.h b/include/linux/irqdomain.h
-index 35965f41d..12f0dd0ac 100644
+index 35965f41d..9610d55bc 100644
 --- a/include/linux/irqdomain.h
 +++ b/include/linux/irqdomain.h
-@@ -582,4 +582,6 @@ static inline bool irq_domain_check_msi_remap(void)
+@@ -582,4 +582,7 @@ static inline bool irq_domain_check_msi_remap(void)
  }
  #endif /* !CONFIG_IRQ_DOMAIN */
  
 +/* ACS GIC Patch */
 +struct irq_domain* acs_get_irq_domain(void);
++
  #endif /* _LINUX_IRQDOMAIN_H */
 diff --git a/kernel/irq/irqdomain.c b/kernel/irq/irqdomain.c
 index 8b0be4bd6..9d94c7ad2 100644
@@ -76,5 +123,5 @@ index 8b0be4bd6..9d94c7ad2 100644
  /* The irq_data was moved, fix the revmap to refer to the new location */
  static void irq_domain_fix_revmap(struct irq_data *d)
 -- 
-2.17.1
+2.18.0
 
