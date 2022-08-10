@@ -46,6 +46,8 @@ unsigned int g_print_mmio;
 unsigned int g_curr_module;
 unsigned int g_enable_module;
 
+unsigned int g_single_test = SINGLE_TEST_SENTINEL;
+unsigned int g_single_module = SINGLE_MODULE_SENTINEL;
 
 uint64_t  *g_pe_info_ptr;
 uint64_t  *g_pcie_info_ptr;
