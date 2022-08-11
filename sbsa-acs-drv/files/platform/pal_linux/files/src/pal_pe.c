@@ -103,7 +103,7 @@ pal_pe_data_cache_ops_by_va(unsigned long long addr, unsigned type)
   @return  None
 **/
 void
-pal_pe_call_smc(ARM_SMC_ARGS *ArmSmcArgs)
+pal_pe_call_smc(ARM_SMC_ARGS *ArmSmcArgs, int32_t conduit)
 {
 }
 
@@ -134,6 +134,12 @@ pal_pe_get_far(void *context)
 
 unsigned long long
 pal_pe_get_esr(void *context)
+{
+  return 0;
+}
+
+int32_t
+pal_psci_get_conduit (void)
 {
   return 0;
 }
