@@ -11,9 +11,10 @@ then
     exit 0
 fi
 
-if [ -z $CROSS_COMPILE ]
+if [ $(uname -m) != "aarch64" ] && [ -z $CROSS_COMPILE ]
 then
     echo "Error: set CROSS_COMPILE path for cross compile"
+    exit 0
 fi
 
 cd $BSA_ACS_PATH/platform/pal_linux/files

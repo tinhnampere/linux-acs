@@ -28,7 +28,7 @@ then
     exit 0
 fi
 
-if [ -z $CROSS_COMPILE ]
+if [ $(uname -m) != "aarch64" ] && [ -z $CROSS_COMPILE ]
 then
     echo "Error: set CROSS_COMPILE path"
     exit 0
