@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Copyright (C) 2016-2021 Arm Limited
+ * Copyright (C) 2016-2022 Arm Limited
  *
  * Author: Prasanth Pulla <prasanth.pulla@arm.com>
  *
@@ -43,6 +43,8 @@ uint64_t g_exception_ret_addr;
 uint64_t g_stack_pointer;
 uint64_t g_ret_addr;
 
+unsigned int g_single_test = SINGLE_TEST_SENTINEL;
+unsigned int g_single_module = SINGLE_MODULE_SENTINEL;
 
 uint64_t  *g_pe_info_ptr;
 uint64_t  *g_pcie_info_ptr;
