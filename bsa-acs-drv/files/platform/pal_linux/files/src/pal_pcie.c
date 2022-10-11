@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Copyright (C) 2016-2021 Arm Limited
+ * Copyright (C) 2016-2022 Arm Limited
  *
  * Author: Prasanth Pulla <prasanth.pulla@arm.com>
  *         Daniil Egranov <daniil.egranov@arm.com>
@@ -696,4 +696,17 @@ uint32_t
 pal_pcie_get_rp_transaction_frwd_support(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t fn)
 {
   return 1;
+}
+
+/**
+  @brief  Placeholder to return the memory offset
+          This offset is platform-specific. It needs to
+          be modified according to the requirement.
+
+**/
+uint32_t
+pal_pcie_mem_get_offset(uint32_t type)
+{
+
+  return 0;
 }
