@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Copyright (C) 2016-2018, 2020 Arm Limited
+ * Copyright (C) 2016-2018, 2020, 2022 Arm Limited
  *
  * Author: Prasanth Pulla <prasanth.pulla@arm.com>
  *
@@ -61,8 +61,8 @@ pal_peripheral_create_info_table(PERIPHERAL_INFO_TABLE *peripheralInfoTable)
        if (pdev != NULL) {
          per_info->base0 = pal_pcie_get_base (pdev, BAR0);
          per_info->bdf = pal_pcie_get_bdf (pdev);
-         per_info->msi = pdev->msi_cap;
-         per_info->msix = pdev->msix_cap;
+         per_info->msi = pdev->msi_enabled;
+         per_info->msix = pdev->msix_enabled;
          if (per_info->msi || per_info->msix)
             per_info->flags = PER_FLAG_MSI_ENABLED;
          else

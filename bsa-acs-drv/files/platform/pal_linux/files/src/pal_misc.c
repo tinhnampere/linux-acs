@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Copyright (C) 2016-2021 Arm Limited
+ * Copyright (C) 2016-2022 Arm Limited
  *
  * Author: Prasanth Pulla <prasanth.pulla@arm.com>
  *
@@ -428,4 +428,48 @@ void *pal_mem_alloc_pages(uint32_t num_pages)
 **/
 void pal_mem_free_pages(void *page_base, uint32_t num_pages)
 {
+}
+
+/**
+ * @brief  Allocates requested buffer size in bytes with zeros in a contiguous memory
+ *         and returns the base address of the range.
+ *
+ * @param  Size         allocation size in bytes
+ * @retval if SUCCESS   pointer to allocated memory
+ * @retval if FAILURE   NULL
+ */
+void *
+pal_mem_calloc(unsigned int num, unsigned int Size)
+{
+
+  return kcalloc(num, Size, GFP_KERNEL);
+}
+
+/**
+  @brief  Allocates memory with the given alignement.
+
+  @param  Alignment   Specifies the alignment.
+  @param  Size        Requested memory allocation size.
+
+  @return Pointer to the allocated memory with requested alignment.
+**/
+void *
+pal_aligned_alloc(uint32_t alignment, uint32_t size)
+{
+  void *Mem = NULL;
+  void *Aligned_Ptr = NULL;
+
+  /* Generate mask for the Alignment parameter*/
+  uint64_t Mask = ~(uint64_t)(alignment - 1);
+
+  /* Allocate memory with extra bytes, so we can return an aligned address*/
+  Mem = (void *)pal_mem_alloc(size + alignment);
+
+  if( Mem == NULL)
+    return 0;
+
+  /* Add the alignment to allocated memory address and align it to target alignment*/
+  Aligned_Ptr = (void *)(((uint64_t) Mem + alignment-1) & Mask);
+
+  return Aligned_Ptr;
 }

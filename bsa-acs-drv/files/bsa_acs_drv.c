@@ -42,6 +42,10 @@ unsigned int  g_bsa_tests_fail;
 uint64_t g_exception_ret_addr;
 uint64_t g_stack_pointer;
 uint64_t g_ret_addr;
+unsigned int g_print_mmio;
+unsigned int g_curr_module;
+unsigned int g_enable_module;
+
 
 unsigned int g_single_test = SINGLE_TEST_SENTINEL;
 unsigned int g_single_module = SINGLE_MODULE_SENTINEL;

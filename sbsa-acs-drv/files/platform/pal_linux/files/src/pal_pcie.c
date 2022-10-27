@@ -69,10 +69,15 @@ pal_pci_read_msi_vector (struct pci_dev *dev, struct msi_desc *entry, PERIPHERAL
   vector->vector_mapped_irq_base = entry->irq;
   vector->vector_n_irqs = entry->nvec_used;
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(5,16,0)
+  if (entry->pci.msi_attrib.is_msix) {
+    base = entry->pci.mask_base +
+        entry->msi_index * PCI_MSIX_ENTRY_SIZE;
+#else
   if (entry->msi_attrib.is_msix) {
     base = entry->mask_base +
         entry->msi_attrib.entry_nr * PCI_MSIX_ENTRY_SIZE;
-
+#endif
     vector->vector_lower_addr = readl (base + PCI_MSIX_ENTRY_LOWER_ADDR);
     vector->vector_upper_addr = readl (base + PCI_MSIX_ENTRY_UPPER_ADDR);
     vector->vector_data = readl (base + PCI_MSIX_ENTRY_DATA);
@@ -81,7 +86,11 @@ pal_pci_read_msi_vector (struct pci_dev *dev, struct msi_desc *entry, PERIPHERAL
     pos = dev->msi_cap;
     pci_read_config_dword (dev, pos + PCI_MSI_ADDRESS_LO,
               &vector->vector_lower_addr);
+#if LINUX_VERSION_CODE > KERNEL_VERSION(5,16,0)
+    if (entry->pci.msi_attrib.is_64) {
+#else
     if (entry->msi_attrib.is_64) {
+#endif
       pci_read_config_dword (dev, pos + PCI_MSI_ADDRESS_HI,
                 &vector->vector_upper_addr);
       pci_read_config_word (dev, pos + PCI_MSI_DATA_64, &data);
@@ -120,7 +129,12 @@ pal_get_msi_vectors (uint32_t seg, uint32_t bus, uint32_t dev, uint32_t fn, PERI
   pdev = pci_get_domain_bus_and_slot (seg, bus, PCI_DEVFN (dev, fn));
 
   if(pdev != NULL) {
+#if LINUX_VERSION_CODE > KERNEL_VERSION(5,16,0)
+    msi_lock_descs(&pdev->dev);
+    msi_for_each_desc(entry, &pdev->dev, MSI_DESC_ALL) {
+#else
     for_each_pci_msi_entry (entry, pdev) {
+#endif
       if (head == NULL) {
         head = kmalloc (sizeof (PERIPHERAL_VECTOR_LIST), GFP_KERNEL);
         if(head == NULL) {
@@ -139,6 +153,9 @@ pal_get_msi_vectors (uint32_t seg, uint32_t bus, uint32_t dev, uint32_t fn, PERI
       pal_pci_read_msi_vector (pdev, entry, &head->vector);
       vcount++;
     }
+#if LINUX_VERSION_CODE > KERNEL_VERSION(5,16,0)
+    msi_unlock_descs(&pdev->dev);
+#endif
   }
 
   return vcount;

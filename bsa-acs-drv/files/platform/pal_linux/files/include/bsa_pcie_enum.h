@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Copyright (C) 2016-2018, 2021 Arm Limited
+ * Copyright (C) 2016-2018, 2021-2022 Arm Limited
  *
  * Author: Prasanth Pulla <prasanth.pulla@arm.com>
  *
@@ -54,5 +54,11 @@ pal_pci_read_config_byte(uint32_t bdf, uint8_t offset, uint8_t *val);
 
 void
 pal_pci_write_config_byte(uint32_t bdf, uint8_t offset, uint8_t val);
+
+unsigned int
+pal_pcie_check_device_valid(unsigned int bdf);
+
+void
+*pal_mem_calloc(unsigned int num, unsigned int size);
 
 #endif
