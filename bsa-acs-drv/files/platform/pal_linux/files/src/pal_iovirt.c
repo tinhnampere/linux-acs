@@ -245,7 +245,7 @@ iovirt_add_block(struct acpi_table_iort *iort, struct acpi_iort_node *iort_node,
             count = &iovirt_table->num_its_groups;
             break;
         case ACPI_IORT_NODE_NAMED_COMPONENT:
-            strncpy((char*)(*data).name, (char*)((struct acpi_iort_named_component*)node_data)->device_name, 16);
+            strncpy((char*)(*data).name, (char*)&(((struct acpi_iort_named_component*)node_data)->device_name[0]), 16);
             count = &iovirt_table->num_named_components;
             break;
         case ACPI_IORT_NODE_PCI_ROOT_COMPLEX:
