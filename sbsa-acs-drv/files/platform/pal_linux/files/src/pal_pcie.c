@@ -658,7 +658,7 @@ void pal_pcie_enumerate(void)
 uint32_t
 pal_pcie_is_cache_present(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t fn)
 {
-  return 0;
+  return 1;
 }
 
 /**
