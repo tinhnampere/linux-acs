@@ -614,7 +614,7 @@ pal_pcie_p2p_support(void)
    * transactions is platform implementation specific
    */
 
-  return 1;
+  return 0;
 }
 
 /**
